@@ -8,7 +8,7 @@
 #include <bit>
 #include <bitset>
 #include <cmath>
-#include <concepts>
+#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -22,9 +22,10 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+#include <map>
 #include <vector>
 
-namespace conbor {
+namespace varbor {
 /** Default error type.
  */
 class Error : public std::runtime_error {
@@ -72,11 +73,6 @@ class SpecialCountError : public Error {
         Error(std::forward<Args>(t)...) {
     }
 };
-
-    /** Struct to force ADL for internal types.
-     */
-    struct Adl {
-    };
 
 /** The major type read from the header.
  */
@@ -159,137 +155,77 @@ struct Header {
     }
 };
 
-/** A type that can be encoded to cbor.
- */
-template <typename T>
-concept ToCborInternal = requires(const T &t, std::back_insert_iterator<std::vector<std::byte>> o, Adl adl) {
-    to_cbor(o, t, adl);
-};
-
-/** A type that can be encoded to cbor.
- */
-template <typename T>
-concept ToCborExternal = requires(const T &t, std::back_insert_iterator<std::vector<std::byte>> o) {
-    to_cbor(o, t);
-};
-
-template <typename T>
-concept ToCbor = requires(const T &t) {
-    requires ToCborExternal<T> || ToCborInternal<T>;
-};
-
-
-/** Pair concept.
- */
-template <typename T>
-concept Pair = std::tuple_size<T>::value == 2;
-
-/** Constrains an array range
- */
-template <typename T>
-concept ToCborRange = requires {
-    requires std::ranges::input_range<T>;
-    requires ToCbor<std::ranges::range_value_t<T>>;
-};
-
-/** Constrains a mapping range.
- */
-template <typename T>
-concept ToCborPairRange = requires {
-    requires std::ranges::input_range<T>;
-    requires Pair<std::ranges::range_value_t<T>>;
-    requires ToCbor<typename std::tuple_element<0, std::ranges::range_value_t<T>>::type>;
-    requires ToCbor<typename std::tuple_element<1, std::ranges::range_value_t<T>>::type>;
-};
-
-template <typename T>
-concept InputRange = std::ranges::input_range<T> && std::ranges::borrowed_range<T> && std::same_as<std::ranges::range_value_t<T>, std::byte>;
-
-template <typename T>
-concept SignedInteger = std::signed_integral<T> && (!std::same_as<T, bool>) && (!std::same_as<T, std::byte>)&&(!std::same_as<T, char>)&&(!std::same_as<T, char8_t>);
-
-template <typename T>
-concept UnsignedInteger = std::unsigned_integral<T> && (!std::same_as<T, bool>) && (!std::same_as<T, std::byte>)&&(!std::same_as<T, char>)&&(!std::same_as<T, char8_t>);
-
-/** A type that can be encoded to cbor.
- */
-template <typename T>
-concept FromCbor = requires(T &t, std::ranges::subrange<const std::byte *> i, const conbor::Header header) {
-    { from_cbor(i, header, t) } -> InputRange;
-};
-
-template <typename T, typename I>
-concept PushBackable = requires (T &t, I &&i) {
-    t.push_back(std::move(i));
-};
-
-template <typename T, typename I>
-concept Insertable = requires (T &t, I &&i) {
-    t.insert(std::move(i));
-};
-
-template <typename T, typename O>
-concept Container = PushBackable<T, O> || Insertable<T, O>;
-
-/** Constrains an array container.
- */
-template <typename T>
-concept FromCborContainer = requires {
-    requires Container<T, typename T::value_type>;
-    requires FromCbor<typename T::value_type>;
-    requires std::default_initializable<typename T::value_type>;
-};
-
-/** Constrains a mapping container.
- */
-template <typename T>
-concept FromCborPairContainer = requires {
-    requires Pair<typename T::value_type>;
-    requires Container<T, typename T::value_type>;
-    requires FromCbor<std::remove_cv_t<typename std::tuple_element<0, typename T::value_type>::type>>;
-    requires FromCbor<typename std::tuple_element<1, typename T::value_type>::type>;
-    requires std::default_initializable<typename std::tuple_element<0, typename T::value_type>::type>;
-    requires std::default_initializable<typename std::tuple_element<1, typename T::value_type>::type>;
-};
-
-
-/** Push into the PushBackable.
- */
-template <typename O>
-inline void push_into(PushBackable<O> auto &container, O &&item) {
-    container.push_back(std::move(item));
-}
-
-/** Insert into the Insertable.
- */
-template <typename O>
-inline void push_into(Insertable<O> auto &container, O &&item) {
-    container.insert(std::move(item));
-}
-
-template <std::ranges::range T>
-using Subrange = std::ranges::subrange<std::ranges::iterator_t<T>, std::ranges::sentinel_t<T>>;
-
-/** Take a from_cbor without a header and read the header.
- */
-template <InputRange I, FromCbor O>
-I from_cbor(I input, O &value) {
-    Header header;
-    input = read_header(std::move(input), header);
-    return from_cbor(std::move(input), header, value);
-}
-
 /** Read a single byte, returning an error if input is empty.
  */
-template <InputRange I>
-inline I read(I input, std::byte &output) {
-    if (std::ranges::empty(input)) {
+template <typename InputIt>
+inline std::tuple<InputIt, Header> read(InputIt begin, const InputIt end) {
+    if (begin == end) {
         throw EndOfInput("Reached end of input early");
     }
-    auto begin = std::ranges::begin(input);
-    output = *begin;
+    const std::byte output = *begin;
     ++begin;
-    return I{begin, std::ranges::end(input)};
+    return {begin, output};
+}
+
+template <typename T>
+inline T from_be_bytes(std::array<std::byte, sizeof(T)> input) {
+    T value;
+    const auto v_pointer = reinterpret_cast<std::byte *>(&value);
+
+    for (size_t i = 0; i < sizeof(value); ++i) {
+        if constexpr (std::endian::native == std::endian::big) {
+            v_pointer[i] = input[i];
+        } else {
+            v_pointer[i] = input[sizeof(value) - 1 - i];
+        }
+    }
+
+    return value;
+}
+
+
+
+template <typename InputIt>
+std::tuple<InputIt, Header> read_header(InputIt begin, const InputIt end) {
+    std::byte byte;
+    std::tie(begin, byte) = read(begin, end);
+    const auto type = static_cast<MajorType>(byte >> 5);
+    const auto tinycount = static_cast<std::uint8_t>(byte & std::byte(0b00011111));
+
+    switch (tinycount) {
+    case 24: {
+        std::tie(begin, byte) = read(begin, end);
+        return {begin, Header{type, Count(std::in_place_index<1>, static_cast<uint8_t>(byte))}};
+    }
+
+    case 25: {
+        std::array<std::byte, 2> count;
+        for (size_t i = 0; i < sizeof(count); ++i) {
+            std::tie(begin, count[i]) = read(begin, end);
+        }
+        return {begin, Header{type, Count(std::in_place_index<2>, from_be_bytes<uint16_t>(count))}};
+    }
+
+    case 26: {
+        std::array<std::byte, 4> count;
+        for (size_t i = 0; i < sizeof(count); ++i) {
+            std::tie(begin, count[i]) = read(begin, end);
+        }
+        return {begin, Header{type, Count(std::in_place_index<3>, from_be_bytes<uint32_t>(count))}};
+    }
+
+    case 27: {
+        std::array<std::byte, 8> count;
+        for (size_t i = 0; i < sizeof(count); ++i) {
+            std::tie(begin, count[i]) = read(begin, end);
+        }
+        return {begin, Header{type, Count(std::in_place_index<4>, from_be_bytes<uint64_t>(count))}};
+    }
+
+    default: {
+        return {begin, Header{type, Count(std::in_place_index<0>, tinycount)}};
+    }
+    }
 }
 
 template <typename T>
@@ -309,95 +245,424 @@ inline std::array<std::byte, sizeof(T)> to_be_bytes(const T &value) {
     return output;
 }
 
-template <typename T>
-inline T from_be_bytes(std::array<std::byte, sizeof(T)> input) {
-    T value;
-    const auto v_pointer = reinterpret_cast<std::byte *>(&value);
-
-    for (size_t i = 0; i < sizeof(value); ++i) {
-        if constexpr (std::endian::native == std::endian::big) {
-            v_pointer[i] = input[i];
-        } else {
-            v_pointer[i] = input[sizeof(value) - 1 - i];
-        }
-    }
-
-    return value;
-}
-
-template <InputRange I>
-  I read_header(I input, Header &header) {
-    std::byte byte{};
-    input = read(std::move(input), byte);
-    const auto type = static_cast<MajorType>(byte >> 5);
-    const auto tinycount = static_cast<std::uint8_t>(byte & std::byte(0b00011111));
-
-    switch (tinycount) {
-    case 24: {
-        input = read(std::move(input), byte);
-        header = Header{type, Count(std::in_place_index<1>, static_cast<uint8_t>(byte))};
-        break;
-    }
-
-    case 25: {
-        std::array<std::byte, 2> count;
-        for (size_t i = 0; i < sizeof(count); ++i) {
-            input = read(std::move(input), byte);
-            count[i] = byte;
-        }
-        header = Header{type, Count(std::in_place_index<2>, from_be_bytes<uint16_t>(count))};
-        break;
-    }
-
-    case 26: {
-        std::array<std::byte, 4> count;
-        for (size_t i = 0; i < sizeof(count); ++i) {
-            input = read(std::move(input), byte);
-            count[i] = byte;
-        }
-        header = Header{type, Count(std::in_place_index<3>, from_be_bytes<uint32_t>(count))};
-        break;
-    }
-
-    case 27: {
-        std::array<std::byte, 8> count;
-        for (size_t i = 0; i < sizeof(count); ++i) {
-            input = read(std::move(input), byte);
-            count[i] = byte;
-        }
-        header = Header{type, Count(std::in_place_index<4>, from_be_bytes<uint64_t>(count))};
-        break;
-    }
-
-    default: {
-        header = Header{type, Count(std::in_place_index<0>, tinycount)};
-        break;
-    }
-    }
-    return input;
-}
 
 /** Write the header.
  */
-template <std::output_iterator<std::byte> O>
-O write_header(O output, const Header header) {
+template <typename OutputIt>
+OutputIt write_header(OutputIt output, const Header header) {
     const auto [type, count] = header;
 
     const auto type_byte = std::byte(static_cast<std::uint8_t>(type) << 5);
 
     if (count.index() == 0) {
         *output = (type_byte | std::byte(std::get<0>(count)));
-        ++output;
+        return ++output;
     } else {
         *output = (type_byte | std::byte(23 + count.index()));
         ++output;
 
-        std::visit([&](const auto &count) {
-            output = std::ranges::copy(to_be_bytes(count), output).out;
+        return std::visit([&](const auto &count) {
+            return std::ranges::copy(to_be_bytes(count), output).out;
         }, count);
     }
+}
 
-    return output;
+/** Convert from float to float16 only if it can be done losslessly.
+ */
+constexpr std::optional<std::array<std::byte, 2>> lossless_float16(const float value) {
+    switch (std::fpclassify(value)) {
+        case FP_ZERO: {
+            std::array<std::byte, 2> output = {std::byte(0), std::byte(0)};
+            if (std::signbit(value)) {
+                output[0] = std::byte(0b10000000);
+            }
+            return output;
+        }
+        case FP_INFINITE: {
+            std::array<std::byte, 2> output = {std::byte(0b01111100), std::byte(0)};
+            if (std::signbit(value)) {
+                // Positive or negative infinity
+                output[0] |= std::byte(0b10000000);
+            }
+
+            return output;
+        }
+        case FP_NAN: {
+            return std::array<std::byte, 2>{{std::byte(0b01111110), std::byte(0)}};
+        }
+    }
+    const auto bytes = to_be_bytes(value);
+    const bool sign = (bytes[0] & std::byte(0b10000000)) != std::byte(0);
+    const std::uint8_t exponent =
+        static_cast<std::uint8_t>(((bytes[0] & std::byte(0b01111111)) << 1)
+                | ((bytes[1] & std::byte(0b10000000)) >> 7));
+
+    const std::int8_t normalized_exponent = static_cast<std::int16_t>(exponent) - 127;
+    const std::uint32_t fraction = 
+        (static_cast<std::uint32_t>(bytes[1] & std::byte(0b01111111)) << 16)
+        | (static_cast<std::uint32_t>(bytes[2]) << 8)
+        | static_cast<std::uint32_t>(bytes[3]);
+
+    if (normalized_exponent >= -14 && normalized_exponent <= 15 && ((fraction & 0b00000000001111111111111) == 0)) {
+        // float16 5-bit biased exponent.
+        const std::uint8_t biased_exponent = normalized_exponent + 15;
+
+        std::array<std::byte, 2> output;
+        if (sign) {
+            output[0] = std::byte(0b10000000);
+        } else {
+            output[0] = std::byte(0);
+        }
+        output[0] |= std::byte(biased_exponent << 2);
+        // Left two significant bits of 23-bit integer in fraction
+        output[0] |= std::byte(fraction >> 21);
+        // Bits 21 through 13 in fraction.  cut off last 13 bits, which remain
+        // unused.
+        output[1] = std::byte(fraction >> 13);
+        return output;
+    }
+
+    return std::nullopt;
+}
+
+
+class Value;
+
+struct Positive {
+    // The raw count value.
+    std::uint64_t count = 0;
+
+    constexpr Positive() {
+    }
+    
+    constexpr Positive(const std::uint64_t count) const noexcept : count(count) {
+    }
+
+    constexpr operator std::int64_t() const noexcept {
+        return static_cast<int64_t>(count);
+    }
+    
+    constexpr operator std::uint64_t() const noexcept {
+        return count;
+    }
+
+    constexpr bool is_valid_int64() const noexcept {
+        return count < 9223372036854775808ul;
+    }
+
+    constexpr bool operator==(const Negative &other) const noexcept = default;
+    constexpr auto operator<=>(const Negative &other) const noexcept = default;
+};
+
+/** A struct for negative numbers, needed because cbor's negative numbers can
+ * exceed C++ int64_t limits.
+ */
+struct Negative {
+    // The raw count value.
+    std::uint64_t count = 0;
+
+    constexpr Negative() {
+    }
+    
+    constexpr Negative(std::uint64_t count) : count(count) {
+    }
+
+    constexpr operator std::int64_t() const noexcept {
+        return -1 - static_cast<int64_t>(count);
+    }
+
+    constexpr bool is_valid_int64() const noexcept {
+        return count < 9223372036854775807ul;
+    }
+
+    constexpr bool operator==(const Negative &other) const noexcept = default;
+    constexpr auto operator<=>(const Negative &other) const noexcept = default;
+};
+
+/** String wrapper with CBOR ordering rules.
+ */
+struct Bytestring {
+    std::vector<std::byte> value;
+    template <class... Args>
+    constexpr Bytestring(Args &&...t) : value(std::forward<Args>(t)...) {
+    }
+
+    template <typename OutputIt>
+    constexpr OutputIt encode(OutputIt output) const {
+        const auto iterator = write_header(output, Header(MajorType::Utf8String, value.size()));
+        return std::copy(value.begin(), value.end(), iterator);
+    }
+
+    constexpr bool operator==(const Bytestring &other) const noexcept = default;
+
+    constexpr std::strong_ordering operator<=>(const Bytestring &other) const noexcept {
+        const auto size_compare = value.size() <=> other.value.size();
+        if (std::is_lt(size_compare)) {
+            return std::strong_ordering::less;
+        } else if (std::is_gt(size_compare)) {
+            return std::strong_ordering::greater;
+        } else {
+            return value <=> other.value;
+        }
+    }
+
+    constexpr operator const std::vector<std::byte>&() const noexcept {
+        return value;
+    }
+
+    constexpr operator std::vector<std::byte>&() noexcept {
+        return value;
+    }
+};
+
+/** String wrapper with CBOR ordering rules.
+ */
+struct Utf8String {
+    std::u8string value;
+    template <class... Args>
+    constexpr Utf8String(Args &&...t) : value(std::forward<Args>(t)...) {
+    }
+
+    template <typename OutputIt>
+    constexpr OutputIt encode(OutputIt output) const {
+        const auto iterator = write_header(output, Header(MajorType::Utf8String, value.size()));
+        return std::transform(value.begin(), value.end(), iterator, [] (const auto c) { return std::byte(c); });
+    }
+
+    constexpr bool operator==(const Utf8String &other) const noexcept = default;
+
+    constexpr std::strong_ordering operator<=>(const Utf8String &other) const noexcept {
+        const auto size_compare = value.size() <=> other.value.size();
+        if (std::is_lt(size_compare)) {
+            return std::strong_ordering::less;
+        } else if (std::is_gt(size_compare)) {
+            return std::strong_ordering::greater;
+        } else {
+            return value <=> other.value;
+        }
+    }
+
+    constexpr operator const std::u8string&() const noexcept {
+        return value;
+    }
+
+    constexpr operator std::u8string&() noexcept {
+        return value;
+    }
+};
+
+using Map = std::map<std::unique_ptr<Value>, std::unique_ptr<Value>>;
+using Array = std::vector<std::unique_ptr<Value>>;
+
+struct SemanticTag {
+    std::uint64_t id = -1;
+    std::unique_ptr<Value> value;
+
+    inline bool operator==(const SemanticTag &other) const noexcept = default;
+    inline auto operator<=>(const SemanticTag &other) const noexcept = default;
+};
+
+/** Simple floating point wrapper that gives cbor-compatible floating point
+ * semantics.
+ */
+struct Float {
+    double value;
+    constexpr Float() noexcept : value(0.0) {
+    }
+    constexpr Float(const double value) noexcept : value(value) {
+    }
+
+    constexpr std::tuple<std::array<std::byte, 5>, std::uint8_t> encode() const noexcept {
+        static_assert(sizeof(float) == 4, "floats must be 4 bytes");
+        static_assert(sizeof(double) == 8, "doubles must be 8 bytes");
+        static_assert(
+                std::endian::native == std::endian::big || std::endian::native == std::endian::little,
+                "mixed endian architectures can not be supported yet");
+
+        std::array<std::byte, 5> output;
+        const float f = value;
+
+        const auto first = output.begin();
+
+        // float16 or float32
+        if (std::isnan(value) || static_cast<double>(f) == value) {
+            const auto float16 = lossless_float16(f);
+            if (float16) {
+                write_header(first, Header{MajorType::SpecialFloat, Count(std::in_place_index<2>, from_be_bytes<std::uint16_t>(*float16))});
+                return {output, 2};
+            } else {
+                write_header(first, Header{MajorType::SpecialFloat, Count(std::in_place_index<3>, from_be_bytes<std::uint32_t>(to_be_bytes(f)))});
+                return {output, 4};
+            }
+        } else {
+            write_header(first, Header{MajorType::SpecialFloat, Count(std::in_place_index<4>, from_be_bytes<std::uint64_t>(to_be_bytes(value)))});
+            return {output, 8};
+        }
+    }
+
+    constexpr bool operator==(const Float &other) const noexcept {
+        return encode() == other.encode();
+    }
+
+    constexpr std::strong_ordering operator<=>(const Float &other) const noexcept {
+        return encode() <=> other.encode();
+    }
+
+    constexpr operator double() const noexcept {
+        return value;
+    }
+};
+
+using Variant = std::variant<Positive, Negative, Bytestring, Utf8String, Array, Map, SemanticTag, bool, std::nullptr_t, std::monostate, Float>;
+
+template <typename OutputIt>
+class EncodingVisitor {
+    private:
+        OutputIt iterator;
+
+    public:
+        constexpr EncodingVisitor(OutputIt iterator) noexcept : iterator(std::move(iterator)) {
+        }
+
+        constexpr OutputIt operator()(const std::uint64_t value) const {
+            return write_header(iterator, Header(MajorType::PositiveInteger, value));
+        }
+
+        constexpr OutputIt operator()(const Negative value) const {
+            return write_header(iterator, Header(MajorType::NegativeInteger, value.count));
+        }
+
+        constexpr OutputIt operator()(const std::vector<std::byte> &value) const {
+            const auto iterator = write_header(this->iterator, Header(MajorType::ByteString, value.size()));
+            return std::copy(std::begin(value), std::end(value), iterator);
+        }
+
+        constexpr OutputIt operator()(const std::u8string &value) const {
+            const auto iterator = write_header(this->iterator, Header(MajorType::Utf8String, value.size()));
+            return std::transform(std::begin(value), std::end(value), iterator, [] (const auto c) { return std::byte(c); });
+        }
+
+        constexpr OutputIt operator()(const Array &value) const;
+        inline OutputIt operator()(const Map &value) const;
+        constexpr OutputIt operator()(const SemanticTag &value) const;
+
+        constexpr OutputIt operator()(const bool value) const {
+            return write_header(iterator, Header{MajorType::SpecialFloat, value ? 21u : 20u});
+        }
+
+        // null
+        constexpr OutputIt operator()([[maybe_unused]] const std::nullptr_t) const {
+            return write_header(iterator, Header{MajorType::SpecialFloat, 22});
+        }
+
+        // undefined
+        constexpr OutputIt operator()([[maybe_unused]] const std::monostate) const {
+            return write_header(iterator, Header{MajorType::SpecialFloat, 23});
+        }
+
+        constexpr OutputIt operator()(const Float value) const {
+            const auto cbor = value.encode();
+            const auto begin = std::begin(std::get<0>(cbor));
+            auto end = begin;
+            std::advance(end, std::get<1>(cbor));
+            return std::copy(begin, end, iterator);
+        }
+};
+
+class Value {
+    private:
+        Variant value_;
+
+    public:
+
+    template <typename ...Args>
+    Value(Args &&...args) : value_(std::forward<Args>(args)...) {
+    }
+
+    inline Variant &value() noexcept {
+        return value_;
+    }
+
+    inline const Variant &value() const noexcept {
+        return value_;
+    }
+
+    template <typename OutputIt>
+    constexpr OutputIt to_cbor(OutputIt output) const {
+        return std::visit(EncodingVisitor(output), value_);
+    }
+
+    template <typename InputIt>
+    static constexpr std::tuple<InputIt, Value> from_cbor(InputIt begin, const InputIt end) {
+        Header header;
+        std::tie(begin, header) = read_header(begin, end);
+        switch (header.type) {
+            case MajorType::PositiveInteger: {
+                return {begin, Value(header.get_count().value())};
+            }
+            case MajorType::NegativeInteger: {
+                return {begin, Value(Negative(header.get_count().value()))};
+            }
+            case MajorType::ByteString: {
+                std::vector<std::byte> string;
+                const auto count = header.get_count();
+                if (count) {
+                    string.reserve(*count);
+                    if constexpr (std::contiguous_iterator<InputIt>) {
+                        auto string_end = begin + *count;
+                        if (string_end > end) {
+                            throw EndOfInput("String reads past end of buffer");
+                        }
+                        std::copy(begin, string_end, std::back_inserter(string));
+                    }
+                }
+                return {begin, Value(std::move(string))};
+            }
+            case MajorType::Utf8String:
+            case MajorType::Array:
+            case MajorType::Map:
+            case MajorType::SemanticTag:
+            case MajorType::SpecialFloat:
+                break;
+        }
+    }
+
+    inline bool operator==(const Value &other) const noexcept = default;
+    constexpr auto operator<=>(const Value &other) const noexcept;
+};
+
+template <typename OutputIt>
+constexpr OutputIt EncodingVisitor<OutputIt>::operator()(const Array &value) const {
+    auto iterator = write_header(this->iterator, Header(MajorType::Array, value.size()));
+    for (const auto &item: value) {
+        iterator = item->to_cbor(iterator);
+    }
+    return iterator;
+}
+
+template <typename OutputIt>
+inline OutputIt EncodingVisitor<OutputIt>::operator()(const Map &value) const {
+    auto iterator = write_header(this->iterator, Header(MajorType::Map, value.size()));
+    for (const auto &[key, val]: value) {
+        iterator = key->to_cbor(iterator);
+        iterator = val->to_cbor(iterator);
+    }
+    return iterator;
+}
+
+template <typename OutputIt>
+constexpr OutputIt EncodingVisitor<OutputIt>::operator()(const SemanticTag &value) const {
+    auto iterator = write_header(this->iterator, Header(MajorType::SemanticTag, value.id));
+    return value.value->to_cbor(iterator);
+}
+
+/** Take a from_cbor without a header and read the header.
+ */
+template <typename InputIt>
+std::tuple<InputIt, Header> from_cbor(InputIt begin, const InputIt end) {
+    Header header;
+    std::tie(begin, header) = read_header(begin, end, header);
+    return from_cbor(begin, end, header);
 }
 
 /** Encode the byte string.
@@ -671,64 +936,6 @@ I from_cbor(I input, const Header header, [[maybe_unused]] std::nullptr_t value)
         throw InvalidType("Tried to read a null pointer, but didn't get one");
     }
     return input;
-}
-
-/** Convert from float to float16 only if it can be done losslessly.
- */
-inline std::optional<std::array<std::byte, 2>> lossless_float16(const float value) {
-    switch (std::fpclassify(value)) {
-        case FP_ZERO: {
-            std::array<std::byte, 2> output = {std::byte(0), std::byte(0)};
-            if (std::signbit(value)) {
-                output[0] = std::byte(0b10000000);
-            }
-            return output;
-        }
-        case FP_INFINITE: {
-            std::array<std::byte, 2> output = {std::byte(0b01111100), std::byte(0)};
-            if (std::signbit(value)) {
-                // Positive or negative infinity
-                output[0] |= std::byte(0b10000000);
-            }
-
-            return output;
-        }
-        case FP_NAN: {
-            return std::array<std::byte, 2>{{std::byte(0b01111100), std::byte(1)}};
-        }
-    }
-    const auto bytes = to_be_bytes(value);
-    const bool sign = (bytes[0] & std::byte(0b10000000)) != std::byte(0);
-    const std::uint8_t exponent =
-        static_cast<std::uint8_t>(((bytes[0] & std::byte(0b01111111)) << 1)
-                | ((bytes[1] & std::byte(0b10000000)) >> 7));
-
-    const std::int8_t normalized_exponent = static_cast<std::int16_t>(exponent) - 127;
-    const std::uint32_t fraction = 
-        (static_cast<std::uint32_t>(bytes[1] & std::byte(0b01111111)) << 16)
-        | (static_cast<std::uint32_t>(bytes[2]) << 8)
-        | static_cast<std::uint32_t>(bytes[3]);
-
-    if (normalized_exponent >= -14 && normalized_exponent <= 15 && ((fraction & 0b00000000001111111111111) == 0)) {
-        // float16 5-bit biased exponent.
-        const std::uint8_t biased_exponent = normalized_exponent + 15;
-
-        std::array<std::byte, 2> output;
-        if (sign) {
-            output[0] = std::byte(0b10000000);
-        } else {
-            output[0] = std::byte(0);
-        }
-        output[0] |= std::byte(biased_exponent << 2);
-        // Left two significant bits of 23-bit integer in fraction
-        output[0] |= std::byte(fraction >> 21);
-        // Bits 21 through 13 in fraction.  cut off last 13 bits, which remain
-        // unused.
-        output[1] = std::byte(fraction >> 13);
-        return output;
-    }
-
-    return std::nullopt;
 }
 
 inline float read_float16(std::array<std::byte, 2> input) {
@@ -1037,4 +1244,4 @@ O from_cbor(I &&range) {
     from_cbor(std::ranges::subrange(range), output);
     return output;
 }
-} // namespace conbor
+} // namespace varbor

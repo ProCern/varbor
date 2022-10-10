@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(conbor VERSION "1.0.0" DESCRIPTION "C++ SQLite3 wrapper" LANGUAGES CXX)
+project(varbor VERSION "1.0.0" DESCRIPTION "variant cbor" LANGUAGES CXX)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_TESTS "Build testing suite" OFF)
 
 add_library(
-    conbor
+    varbor
     INTERFACE
     )
 
@@ -20,33 +20,33 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 install(FILES
-    conbor/cbor.hxx
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/conbor"
+    varbor.hxx
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/varbor"
     )
 
-install(TARGETS conbor EXPORT conborTargets
+install(TARGETS varbor EXPORT varborTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(EXPORT conborTargets NAMESPACE conbor:: DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/conbor")
+install(EXPORT varborTargets NAMESPACE varbor:: DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/varbor")
 
 
-configure_package_config_file("conborConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/conborConfig.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/conbor"
+configure_package_config_file("varborConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/varborConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/varbor"
     )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/conborConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/varborConfigVersion.cmake"
     VERSION ${PACKAGE_VERSION}
     COMPATIBILITY SameMajorVersion
     )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/conborConfig.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/conborConfigVersion.cmake
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/conbor"
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/varborConfig.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/varborConfigVersion.cmake
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/varbor"
         )
 
 if(BUILD_TESTS)
@@ -63,15 +63,15 @@ if(BUILD_TESTS)
     enable_testing()
 
     add_executable(
-        conbor_test
-        conbor_test.cxx
+        varbor_test
+        varbor_test.cxx
         )
     target_link_libraries(
-        conbor_test
+        varbor_test
         GTest::gtest_main
-        conbor
+        varbor
         )
 
     include(GoogleTest)
-    gtest_discover_tests(conbor_test)
+    gtest_discover_tests(varbor_test)
 endif()

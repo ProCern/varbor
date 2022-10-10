@@ -2,103 +2,103 @@
  * This code is released under the license described in the LICENSE file
  */
 
-#include "conbor/cbor.hxx"
+#include "varbor.hxx"
 #include <gtest/gtest.h>
 #include <limits>
 
 TEST(Encoding, Specials) {
     EXPECT_EQ(
-            conbor::to_cbor(false),
+            varbor::to_cbor(false),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}))
       << "boolean false";
     EXPECT_EQ(
-            conbor::to_cbor(true),
+            varbor::to_cbor(true),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)}))
       << "boolean true";
     EXPECT_EQ(
-            conbor::to_cbor(nullptr),
+            varbor::to_cbor(nullptr),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
       << "null";
     EXPECT_EQ(
-            conbor::to_cbor(std::optional<int>{}),
+            varbor::to_cbor(std::optional<int>{}),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)})
       << "optional null";
 
     EXPECT_EQ(
-            conbor::to_cbor(std::optional<int>{5}),
+            varbor::to_cbor(std::optional<int>{5}),
       (std::vector<std::byte>{std::byte(5)}))
       << "optional set";
 }
 
 TEST(Encoding, Floats) {
     EXPECT_EQ(
-            conbor::to_cbor(0.15625f),
+            varbor::to_cbor(0.15625f),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)}))
       << "16 bit float";
     EXPECT_EQ(
-            conbor::to_cbor(0.15625),
+            varbor::to_cbor(0.15625),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)}))
       << "16 bit float from double";
     EXPECT_EQ(
-            conbor::to_cbor(1.0f / 3.0f),
+            varbor::to_cbor(1.0f / 3.0f),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)}))
       << "32 bit float";
     EXPECT_EQ(
-            conbor::to_cbor(static_cast<double>(1.0f / 3.0f)),
+            varbor::to_cbor(static_cast<double>(1.0f / 3.0f)),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)}))
       << "32 bit float from double";
     EXPECT_EQ(
-            conbor::to_cbor(1.0 / 3.0),
+            varbor::to_cbor(1.0 / 3.0),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(27), std::byte(0b00111111), std::byte(0b11010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101)}))
       << "64 bit float";
 
     EXPECT_EQ(
-            conbor::to_cbor(0.0),
+            varbor::to_cbor(0.0),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00000000), std::byte(0b00000000)}))
       << "16 bit zero";
 
     EXPECT_EQ(
-            conbor::to_cbor(-0.0),
+            varbor::to_cbor(-0.0),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b10000000), std::byte(0b00000000)}))
       << "16 bit negative zero";
 
     EXPECT_EQ(
-            conbor::to_cbor(std::numeric_limits<double>::infinity()),
+            varbor::to_cbor(std::numeric_limits<double>::infinity()),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000000)}))
       << "16 bit inifinity";
 
     EXPECT_EQ(
-            conbor::to_cbor(-std::numeric_limits<double>::infinity()),
+            varbor::to_cbor(-std::numeric_limits<double>::infinity()),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b11111100), std::byte(0b00000000)}))
       << "16 bit negative inifinity";
 
     EXPECT_EQ(
-            conbor::to_cbor(std::numeric_limits<double>::quiet_NaN()),
+            varbor::to_cbor(std::numeric_limits<double>::quiet_NaN()),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000001)}))
       << "16 bit quiet nan";
 
     EXPECT_EQ(
-            conbor::to_cbor(std::numeric_limits<double>::signaling_NaN()),
+            varbor::to_cbor(std::numeric_limits<double>::signaling_NaN()),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000001)}))
       << "16 bit signaling nan";
 }
 
 TEST(Encoding, PositiveInteger) {
-    EXPECT_EQ(conbor::to_cbor(5), std::vector<std::byte>{std::byte(5)})
+    EXPECT_EQ(varbor::to_cbor(5), std::vector<std::byte>{std::byte(5)})
       << "tiny positive int";
-    EXPECT_EQ(conbor::to_cbor(24), (std::vector<std::byte>{std::byte(24), std::byte(24)}))
+    EXPECT_EQ(varbor::to_cbor(24), (std::vector<std::byte>{std::byte(24), std::byte(24)}))
       << "1 byte positive int";
     EXPECT_EQ(
-      conbor::to_cbor(256),
+      varbor::to_cbor(256),
       (std::vector<std::byte>{std::byte(25), std::byte(1), std::byte(0)}))
       << "2 byte positive int";
     EXPECT_EQ(
-      conbor::to_cbor(65536),
+      varbor::to_cbor(65536),
       (std::vector<
         std::byte>{std::byte(26), std::byte(0), std::byte(1), std::byte(0), std::byte(0)}))
       << "4 byte positive int";
     EXPECT_EQ(
-      conbor::to_cbor(4294967296),
+      varbor::to_cbor(4294967296),
       (std::vector<std::byte>{
         std::byte(27),
         std::byte(0),
@@ -113,18 +113,18 @@ TEST(Encoding, PositiveInteger) {
 }
 
 TEST(Encoding, NegativeInteger) {
-    EXPECT_EQ(conbor::to_cbor(-6), std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)})
+    EXPECT_EQ(varbor::to_cbor(-6), std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)})
       << "tiny negative int";
     EXPECT_EQ(
-      conbor::to_cbor(-25),
+      varbor::to_cbor(-25),
       (std::vector<std::byte>{std::byte(1 << 5) | std::byte(24), std::byte(24)}))
       << "1 byte negative int";
     EXPECT_EQ(
-      conbor::to_cbor(-257),
+      varbor::to_cbor(-257),
       (std::vector<std::byte>{std::byte(1 << 5) | std::byte(25), std::byte(1), std::byte(0)}))
       << "2 byte negative int";
     EXPECT_EQ(
-      conbor::to_cbor(-65537),
+      varbor::to_cbor(-65537),
       (std::vector<std::byte>{
         std::byte(1 << 5) | std::byte(26),
         std::byte(0),
@@ -133,7 +133,7 @@ TEST(Encoding, NegativeInteger) {
         std::byte(0)}))
       << "4 byte negative int";
     EXPECT_EQ(
-      conbor::to_cbor(-4294967297),
+      varbor::to_cbor(-4294967297),
       (std::vector<std::byte>{
         std::byte(1 << 5) | std::byte(27),
         std::byte(0),
@@ -149,7 +149,7 @@ TEST(Encoding, NegativeInteger) {
 
 TEST(Encoding, ByteString) {
     EXPECT_EQ(
-      (conbor::to_cbor(std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)})
+      (varbor::to_cbor(std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)})
          ),
       (std::vector<std::byte>{
         std::byte(2 << 5) | std::byte(4),
@@ -161,7 +161,7 @@ TEST(Encoding, ByteString) {
 
 TEST(Encoding, String) {
     EXPECT_EQ(
-      (conbor::to_cbor(std::u8string_view(u8"1337"))),
+      (varbor::to_cbor(std::u8string_view(u8"1337"))),
       (std::vector<std::byte>{
         std::byte(3 << 5) | std::byte(4),
         std::byte('1'),
@@ -170,7 +170,7 @@ TEST(Encoding, String) {
         std::byte('7')}));
 
     EXPECT_EQ(
-      (conbor::to_cbor(std::string_view("1337"))),
+      (varbor::to_cbor(std::string_view("1337"))),
       (std::vector<std::byte>{
         std::byte(3 << 5) | std::byte(4),
         std::byte('1'),
@@ -182,7 +182,7 @@ TEST(Encoding, String) {
 TEST(Decoding, ByteString) {
     EXPECT_EQ(
       (std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)}),
-      (conbor::from_cbor<std::vector<std::byte>>(std::vector<std::byte>{
+      (varbor::from_cbor<std::vector<std::byte>>(std::vector<std::byte>{
         std::byte(2 << 5) | std::byte(4),
         std::byte(1),
         std::byte(3),
@@ -193,7 +193,7 @@ TEST(Decoding, ByteString) {
 TEST(Decoding, String) {
     EXPECT_EQ(
       (std::u8string(u8"1337")),
-      (conbor::from_cbor<std::u8string>(std::vector<std::byte>{
+      (varbor::from_cbor<std::u8string>(std::vector<std::byte>{
         std::byte(3 << 5) | std::byte(4),
         std::byte('1'),
         std::byte('3'),
@@ -202,7 +202,7 @@ TEST(Decoding, String) {
 
     EXPECT_EQ(
       (std::string("1337")),
-      (conbor::from_cbor<std::string>(std::vector<std::byte>{
+      (varbor::from_cbor<std::string>(std::vector<std::byte>{
         std::byte(3 << 5) | std::byte(4),
         std::byte('1'),
         std::byte('3'),
@@ -212,7 +212,7 @@ TEST(Decoding, String) {
 
 TEST(Encoding, Array) {
     EXPECT_EQ(
-      conbor::to_cbor(std::vector<std::u8string>{
+      varbor::to_cbor(std::vector<std::u8string>{
           u8"1337",
           u8"6969",
           }),
@@ -235,7 +235,7 @@ TEST(Encoding, Array) {
       }));
 
     EXPECT_EQ(
-      conbor::to_cbor(std::vector<std::vector<std::u8string>>{
+      varbor::to_cbor(std::vector<std::vector<std::u8string>>{
           {u8"1337"},
           {u8"6969"},
           }),
@@ -264,7 +264,7 @@ TEST(Encoding, Array) {
 
 TEST(Encoding, Map) {
     EXPECT_EQ(
-      conbor::to_cbor(std::map<std::u8string, std::u8string>{
+      varbor::to_cbor(std::map<std::u8string, std::u8string>{
           {u8"1337",
           u8"6969",
           }
@@ -288,7 +288,7 @@ TEST(Encoding, Map) {
       }));
 
     EXPECT_EQ(
-      conbor::to_cbor(std::map<std::map<std::u8string, std::u8string>, std::map<std::u8string, std::u8string>>{
+      varbor::to_cbor(std::map<std::map<std::u8string, std::u8string>, std::map<std::u8string, std::u8string>>{
               {{{u8"1337", u8"6969"}}, {{u8"foo", u8"bar"}}},
           }),
 
@@ -326,7 +326,7 @@ TEST(Encoding, Map) {
 
 TEST(Encoding, MapArrayMixedRecursive) {
     EXPECT_EQ(
-      conbor::to_cbor(std::vector<std::map<std::vector<std::u8string>, std::vector<std::u8string>>>{
+      varbor::to_cbor(std::vector<std::map<std::vector<std::u8string>, std::vector<std::u8string>>>{
           // Vector Item as a map
           {
               // map item
@@ -375,7 +375,7 @@ TEST(Encoding, MapArrayMixedRecursive) {
 
 namespace foo {
     template <typename T>
-    requires conbor::ToCbor<T> && conbor::FromCbor<T> && std::default_initializable<T>
+    requires varbor::ToCbor<T> && varbor::FromCbor<T> && std::default_initializable<T>
     struct CborFollowsTag {
         static constexpr uint16_t id = 55799;
         T contained;
@@ -389,7 +389,7 @@ namespace foo {
     };
 
     template <typename T>
-    requires conbor::ToCbor<T> && conbor::FromCbor<T> && std::default_initializable<T>
+    requires varbor::ToCbor<T> && varbor::FromCbor<T> && std::default_initializable<T>
     struct LeetTag {
         static constexpr uint16_t id = 1337;
         T contained;
@@ -402,40 +402,40 @@ namespace foo {
         auto operator<=>(const LeetTag<T> &other) const noexcept = default;
     };
 
-    template <std::output_iterator<std::byte> O, conbor::ToCbor T>
+    template <std::output_iterator<std::byte> O, varbor::ToCbor T>
     O to_cbor(O output, const CborFollowsTag<T> &tag) {
-        output = write_header(output, conbor::Header(conbor::MajorType::SemanticTag, tag.id));
+        output = write_header(output, varbor::Header(varbor::MajorType::SemanticTag, tag.id));
 
-        using conbor::to_cbor;
+        using varbor::to_cbor;
 
         return to_cbor(output, tag.contained);
     }
 
-    template <std::output_iterator<std::byte> O, conbor::ToCbor T>
+    template <std::output_iterator<std::byte> O, varbor::ToCbor T>
     O to_cbor(O output, const LeetTag<T> &tag) {
-        output = write_header(output, conbor::Header(conbor::MajorType::SemanticTag, tag.id));
+        output = write_header(output, varbor::Header(varbor::MajorType::SemanticTag, tag.id));
 
-        using conbor::to_cbor;
+        using varbor::to_cbor;
 
         return to_cbor(output, tag.contained);
     }
 
-    template <conbor::InputRange I, conbor::FromCbor T>
-    I from_cbor(I input, const conbor::Header header, CborFollowsTag<T> &tag) {
-        if (header != conbor::Header(conbor::MajorType::SemanticTag, tag.id)) {
-            throw conbor::InvalidType("Expected CborFollows");
+    template <varbor::InputRange I, varbor::FromCbor T>
+    I from_cbor(I input, const varbor::Header header, CborFollowsTag<T> &tag) {
+        if (header != varbor::Header(varbor::MajorType::SemanticTag, tag.id)) {
+            throw varbor::InvalidType("Expected CborFollows");
         }
-        using conbor::from_cbor;
+        using varbor::from_cbor;
 
         return from_cbor(std::move(input), tag.contained);
     }
 
-    template <conbor::InputRange I, conbor::FromCbor T>
-    conbor::Subrange<I> from_cbor(I input, const conbor::Header header, LeetTag<T> &tag) {
-        if (header != conbor::Header(conbor::MajorType::SemanticTag, tag.id)) {
-            throw conbor::InvalidType("Expected Leet");
+    template <varbor::InputRange I, varbor::FromCbor T>
+    varbor::Subrange<I> from_cbor(I input, const varbor::Header header, LeetTag<T> &tag) {
+        if (header != varbor::Header(varbor::MajorType::SemanticTag, tag.id)) {
+            throw varbor::InvalidType("Expected Leet");
         }
-        using conbor::from_cbor;
+        using varbor::from_cbor;
 
         return from_cbor(std::move(input), tag.contained);
     }
@@ -443,7 +443,7 @@ namespace foo {
 
 TEST(Encoding, CustomTypes) {
     EXPECT_EQ(
-      conbor::to_cbor(foo::CborFollowsTag(std::vector{foo::LeetTag(std::map<std::u8string, foo::CborFollowsTag<std::vector<std::u8string>>>{{u8"foo", foo::CborFollowsTag(std::vector<std::u8string>{u8"bar"})}})})),
+      varbor::to_cbor(foo::CborFollowsTag(std::vector{foo::LeetTag(std::map<std::u8string, foo::CborFollowsTag<std::vector<std::u8string>>>{{u8"foo", foo::CborFollowsTag(std::vector<std::u8string>{u8"bar"})}})})),
 
       (std::vector<std::byte>{
        // Simple CBOR data follows prefix
@@ -474,54 +474,54 @@ TEST(Encoding, CustomTypes) {
 TEST(Decoding, Specials) {
     EXPECT_EQ(
             false,
-      conbor::from_cbor<bool>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}))
+      varbor::from_cbor<bool>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}))
       << "boolean false";
     EXPECT_EQ(
             true,
-      conbor::from_cbor<bool>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)}))
+      varbor::from_cbor<bool>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)}))
       << "boolean true";
     EXPECT_EQ(
             nullptr,
-      conbor::from_cbor<std::nullptr_t>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
+      varbor::from_cbor<std::nullptr_t>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
       << "null";
     EXPECT_EQ(
             std::optional<int>{},
-      conbor::from_cbor<std::optional<int>>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
+      varbor::from_cbor<std::optional<int>>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
       << "optional null";
 
     EXPECT_EQ(
             std::optional<int>{5},
-      conbor::from_cbor<std::optional<int>>(std::vector<std::byte>{std::byte(5)}))
+      varbor::from_cbor<std::optional<int>>(std::vector<std::byte>{std::byte(5)}))
       << "optional set";
 }
 
 TEST(Decoding, Floats) {
-    EXPECT_EQ(0.15625f, conbor::from_cbor<float>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)})) << "16 bit float";
-    EXPECT_EQ(0.15625, conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)})) << "16 bit float to double";
-    EXPECT_EQ(1.0f / 3.0f, conbor::from_cbor<float>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)})) << "32 bit float";
-    EXPECT_EQ(static_cast<double>(1.0f / 3.0f), conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)})) << "32 bit float from double";
-    EXPECT_EQ(1.0 / 3.0, conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(27), std::byte(0b00111111), std::byte(0b11010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101)})) << "64 bit float";
-    EXPECT_EQ(static_cast<float>(1.0 / 3.0), conbor::from_cbor<float>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(27), std::byte(0b00111111), std::byte(0b11010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101)})) << "64 bit float read as 32 bit float";
-    EXPECT_EQ(0.0, conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00000000), std::byte(0b00000000)})) << "16 bit zero";
-    EXPECT_EQ(-0.0, conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b10000000), std::byte(0b00000000)})) << "16 bit negative zero";
-    EXPECT_EQ(std::numeric_limits<double>::infinity(), conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000000)})) << "16 bit inifinity";
-    EXPECT_EQ(-std::numeric_limits<double>::infinity(), conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b11111100), std::byte(0b00000000)})) << "16 bit negative inifinity";
-    EXPECT_TRUE(std::isnan(conbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000001)}))) << "16 bit nan";
+    EXPECT_EQ(0.15625f, varbor::from_cbor<float>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)})) << "16 bit float";
+    EXPECT_EQ(0.15625, varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)})) << "16 bit float to double";
+    EXPECT_EQ(1.0f / 3.0f, varbor::from_cbor<float>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)})) << "32 bit float";
+    EXPECT_EQ(static_cast<double>(1.0f / 3.0f), varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)})) << "32 bit float from double";
+    EXPECT_EQ(1.0 / 3.0, varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(27), std::byte(0b00111111), std::byte(0b11010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101)})) << "64 bit float";
+    EXPECT_EQ(static_cast<float>(1.0 / 3.0), varbor::from_cbor<float>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(27), std::byte(0b00111111), std::byte(0b11010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101)})) << "64 bit float read as 32 bit float";
+    EXPECT_EQ(0.0, varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00000000), std::byte(0b00000000)})) << "16 bit zero";
+    EXPECT_EQ(-0.0, varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b10000000), std::byte(0b00000000)})) << "16 bit negative zero";
+    EXPECT_EQ(std::numeric_limits<double>::infinity(), varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000000)})) << "16 bit inifinity";
+    EXPECT_EQ(-std::numeric_limits<double>::infinity(), varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b11111100), std::byte(0b00000000)})) << "16 bit negative inifinity";
+    EXPECT_TRUE(std::isnan(varbor::from_cbor<double>(std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000001)}))) << "16 bit nan";
 }
 
 TEST(Decoding, PositiveInteger) {
-    EXPECT_EQ(5, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(5)})) << "tiny positive int";
-    EXPECT_EQ(24, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(24), std::byte(24)}))
+    EXPECT_EQ(5, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(5)})) << "tiny positive int";
+    EXPECT_EQ(24, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(24), std::byte(24)}))
       << "1 byte positive int";
     EXPECT_EQ(256,
-      conbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(25), std::byte(1), std::byte(0)}))
+      varbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(25), std::byte(1), std::byte(0)}))
       << "2 byte positive int";
     EXPECT_EQ(65536,
-      conbor::from_cbor<std::int64_t>(std::vector<
+      varbor::from_cbor<std::int64_t>(std::vector<
         std::byte>{std::byte(26), std::byte(0), std::byte(1), std::byte(0), std::byte(0)}))
       << "4 byte positive int";
     EXPECT_EQ(4294967296,
-      conbor::from_cbor<std::int64_t>(std::vector<std::byte>{
+      varbor::from_cbor<std::int64_t>(std::vector<std::byte>{
         std::byte(27),
         std::byte(0),
         std::byte(0),
@@ -535,16 +535,16 @@ TEST(Decoding, PositiveInteger) {
 }
 
 TEST(Decoding, NegativeInteger) {
-    EXPECT_EQ(-6, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)})) << "tiny negative int";
-    EXPECT_EQ(-25, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(1 << 5) | std::byte(24), std::byte(24)})) << "1 byte negative int";
-    EXPECT_EQ(-257, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(1 << 5) | std::byte(25), std::byte(1), std::byte(0)})) << "2 byte negative int";
-    EXPECT_EQ(-65537, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{ std::byte(1 << 5) | std::byte(26), std::byte(0), std::byte(1), std::byte(0), std::byte(0)})) << "4 byte negative int";
-    EXPECT_EQ(-4294967297, conbor::from_cbor<std::int64_t>(std::vector<std::byte>{ std::byte(1 << 5) | std::byte(27), std::byte(0), std::byte(0), std::byte(0), std::byte(1), std::byte(0), std::byte(0), std::byte(0), std::byte(0)})) << "8 byte negative int";
+    EXPECT_EQ(-6, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)})) << "tiny negative int";
+    EXPECT_EQ(-25, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(1 << 5) | std::byte(24), std::byte(24)})) << "1 byte negative int";
+    EXPECT_EQ(-257, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{std::byte(1 << 5) | std::byte(25), std::byte(1), std::byte(0)})) << "2 byte negative int";
+    EXPECT_EQ(-65537, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{ std::byte(1 << 5) | std::byte(26), std::byte(0), std::byte(1), std::byte(0), std::byte(0)})) << "4 byte negative int";
+    EXPECT_EQ(-4294967297, varbor::from_cbor<std::int64_t>(std::vector<std::byte>{ std::byte(1 << 5) | std::byte(27), std::byte(0), std::byte(0), std::byte(0), std::byte(1), std::byte(0), std::byte(0), std::byte(0), std::byte(0)})) << "8 byte negative int";
 }
 
 TEST(Encoding, OwnedByteString) {
     EXPECT_EQ((std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)}),
-      conbor::from_cbor<std::vector<std::byte>>(std::vector<std::byte>{
+      varbor::from_cbor<std::vector<std::byte>>(std::vector<std::byte>{
         std::byte(2 << 5) | std::byte(4),
         std::byte(1),
         std::byte(3),
@@ -555,7 +555,7 @@ TEST(Encoding, OwnedByteString) {
 TEST(Encoding, OwnedString) {
     EXPECT_EQ(
       std::u8string(u8"1337"),
-      conbor::from_cbor<std::u8string>(std::vector<std::byte>{
+      varbor::from_cbor<std::u8string>(std::vector<std::byte>{
         std::byte(3 << 5) | std::byte(4),
         std::byte('1'),
         std::byte('3'),
@@ -570,7 +570,7 @@ TEST(Decoding, Array) {
           u8"6969",
           }),
 
-      conbor::from_cbor<std::vector<std::u8string>>(std::vector<std::byte>{
+      varbor::from_cbor<std::vector<std::u8string>>(std::vector<std::byte>{
         // Header
         std::byte(4 << 5) | std::byte(2),
         // String
@@ -593,7 +593,7 @@ TEST(Decoding, Array) {
           {u8"6969"},
           }),
 
-      conbor::from_cbor<std::vector<std::vector<std::u8string>>>(std::vector<std::byte>{
+      varbor::from_cbor<std::vector<std::vector<std::u8string>>>(std::vector<std::byte>{
         // Header
         std::byte(4 << 5) | std::byte(2),
         // Header
@@ -623,7 +623,7 @@ TEST(Decoding, Map) {
           }
           }),
 
-      (conbor::from_cbor<std::map<std::u8string, std::u8string>>(std::vector<std::byte>{
+      (varbor::from_cbor<std::map<std::u8string, std::u8string>>(std::vector<std::byte>{
         // Header
         std::byte(5 << 5) | std::byte(1),
         // String
@@ -645,7 +645,7 @@ TEST(Decoding, Map) {
               {{{u8"1337", u8"6969"}}, {{u8"foo", u8"bar"}}},
           }),
 
-      (conbor::from_cbor<std::map<std::map<std::u8string, std::u8string>, std::map<std::u8string, std::u8string>>>(std::vector<std::byte>{
+      (varbor::from_cbor<std::map<std::map<std::u8string, std::u8string>, std::map<std::u8string, std::u8string>>>(std::vector<std::byte>{
         // Header
         std::byte(5 << 5) | std::byte(1),
         // Header
@@ -692,7 +692,7 @@ TEST(Decoding, MapArrayMixedRecursive) {
           }
           }),
 
-      (conbor::from_cbor<std::vector<std::map<std::vector<std::u8string>, std::vector<std::u8string>>>>(std::vector<std::byte>{
+      (varbor::from_cbor<std::vector<std::map<std::vector<std::u8string>, std::vector<std::u8string>>>>(std::vector<std::byte>{
         // Array Header
         std::byte(4 << 5) | std::byte(1),
         // Map Header
@@ -730,7 +730,7 @@ TEST(Decoding, CustomTypes) {
     EXPECT_EQ(
       (foo::CborFollowsTag(std::vector{foo::LeetTag(std::map<std::u8string, foo::CborFollowsTag<std::vector<std::u8string>>>{{u8"foo", foo::CborFollowsTag(std::vector<std::u8string>{u8"bar"})}})})),
 
-      (conbor::from_cbor<foo::CborFollowsTag<std::vector<foo::LeetTag<std::map<std::u8string, foo::CborFollowsTag<std::vector<std::u8string>>>>>>>(std::vector<std::byte>{
+      (varbor::from_cbor<foo::CborFollowsTag<std::vector<foo::LeetTag<std::map<std::u8string, foo::CborFollowsTag<std::vector<std::u8string>>>>>>>(std::vector<std::byte>{
        // Simple CBOR data follows prefix
         std::byte(0xd9), std::byte(0xd9), std::byte(0xf7),
         // Array Header
@@ -758,68 +758,68 @@ TEST(Decoding, CustomTypes) {
 
 /*TEST(BuildValue, Equality) {
     EXPECT_EQ(
-      conbor::Value(std::u8string_view(u8"Hello")),
-      conbor::Value(std::u8string_view(u8"Hello")));
-    EXPECT_EQ(conbor::Value(), conbor::Value(conbor::Undefined{}))
+      varbor::Value(std::u8string_view(u8"Hello")),
+      varbor::Value(std::u8string_view(u8"Hello")));
+    EXPECT_EQ(varbor::Value(), varbor::Value(varbor::Undefined{}))
       << "Default constructed should be Undefined";
 }
 
 TEST(Encoding, Tagged) {
     EXPECT_EQ(
-      conbor::Value(conbor::Tagged(55799, true)).encoded(),
+      varbor::Value(varbor::Tagged(55799, true)).encoded(),
       (std::vector<std::byte>{
         std::byte(0xd9),
         std::byte(0xd9),
         std::byte(0xf7),
         std::byte(7 << 5) | std::byte(21)}))
-      << "conbor tagged true";
+      << "varbor tagged true";
 }
 
 TEST(Encoding, Specials) {
     EXPECT_EQ(
-      conbor::Value(false).encoded(),
+      varbor::Value(false).encoded(),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)})
       << "boolean false";
     EXPECT_EQ(
-      conbor::Value(true).encoded(),
+      varbor::Value(true).encoded(),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)})
       << "boolean true";
     EXPECT_EQ(
-      conbor::Value(conbor::Null{}).encoded(),
+      varbor::Value(varbor::Null{}).encoded(),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)})
       << "null";
     EXPECT_EQ(
-      conbor::Value(nullptr).encoded(),
+      varbor::Value(nullptr).encoded(),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)})
       << "nullptr null";
     EXPECT_EQ(
-      conbor::Value(conbor::Undefined{}).encoded(),
+      varbor::Value(varbor::Undefined{}).encoded(),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)})
       << "undefined";
-    EXPECT_EQ(conbor::Value().encoded(), std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)})
+    EXPECT_EQ(varbor::Value().encoded(), std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)})
       << "default undefined";
     EXPECT_EQ(
-      conbor::Value(conbor::Break{}).encoded(),
+      varbor::Value(varbor::Break{}).encoded(),
       std::vector<std::byte>{std::byte(7 << 5) | std::byte(31)})
       << "break";
 }
 
 TEST(Encoding, PositiveInteger) {
-    EXPECT_EQ(conbor::Value(5).encoded(), std::vector<std::byte>{std::byte(5)})
+    EXPECT_EQ(varbor::Value(5).encoded(), std::vector<std::byte>{std::byte(5)})
       << "tiny positive int";
-    EXPECT_EQ(conbor::Value(24).encoded(), (std::vector<std::byte>{std::byte(24), std::byte(24)}))
+    EXPECT_EQ(varbor::Value(24).encoded(), (std::vector<std::byte>{std::byte(24), std::byte(24)}))
       << "1 byte positive int";
     EXPECT_EQ(
-      conbor::Value(256).encoded(),
+      varbor::Value(256).encoded(),
       (std::vector<std::byte>{std::byte(25), std::byte(1), std::byte(0)}))
       << "2 byte positive int";
     EXPECT_EQ(
-      conbor::Value(65536).encoded(),
+      varbor::Value(65536).encoded(),
       (std::vector<
         std::byte>{std::byte(26), std::byte(0), std::byte(1), std::byte(0), std::byte(0)}))
       << "4 byte positive int";
     EXPECT_EQ(
-      conbor::Value(4294967296).encoded(),
+      varbor::Value(4294967296).encoded(),
       (std::vector<std::byte>{
         std::byte(27),
         std::byte(0),
@@ -834,18 +834,18 @@ TEST(Encoding, PositiveInteger) {
 }
 
 TEST(Encoding, NegativeInteger) {
-    EXPECT_EQ(conbor::Value(-6).encoded(), std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)})
+    EXPECT_EQ(varbor::Value(-6).encoded(), std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)})
       << "tiny negative int";
     EXPECT_EQ(
-      conbor::Value(-25).encoded(),
+      varbor::Value(-25).encoded(),
       (std::vector<std::byte>{std::byte(1 << 5) | std::byte(24), std::byte(24)}))
       << "1 byte negative int";
     EXPECT_EQ(
-      conbor::Value(-257).encoded(),
+      varbor::Value(-257).encoded(),
       (std::vector<std::byte>{std::byte(1 << 5) | std::byte(25), std::byte(1), std::byte(0)}))
       << "2 byte negative int";
     EXPECT_EQ(
-      conbor::Value(-65537).encoded(),
+      varbor::Value(-65537).encoded(),
       (std::vector<std::byte>{
         std::byte(1 << 5) | std::byte(26),
         std::byte(0),
@@ -854,7 +854,7 @@ TEST(Encoding, NegativeInteger) {
         std::byte(0)}))
       << "4 byte negative int";
     EXPECT_EQ(
-      conbor::Value(-4294967297).encoded(),
+      varbor::Value(-4294967297).encoded(),
       (std::vector<std::byte>{
         std::byte(1 << 5) | std::byte(27),
         std::byte(0),
@@ -870,7 +870,7 @@ TEST(Encoding, NegativeInteger) {
 
 TEST(Encoding, ByteString) {
     EXPECT_EQ(
-      (conbor::Value(std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)})
+      (varbor::Value(std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)})
          .encoded()),
       (std::vector<std::byte>{
         std::byte(2 << 5) | std::byte(4),
@@ -882,7 +882,7 @@ TEST(Encoding, ByteString) {
 
 TEST(Encoding, String) {
     EXPECT_EQ(
-      (conbor::Value(std::u8string_view(u8"1337")).encoded()),
+      (varbor::Value(std::u8string_view(u8"1337")).encoded()),
       (std::vector<std::byte>{
         std::byte(3 << 5) | std::byte(4),
         std::byte('1'),
@@ -892,12 +892,12 @@ TEST(Encoding, String) {
 }
 
 TEST(Encoding, Array) {
-    std::vector<std::unique_ptr<conbor::Value>> array;
-    array.push_back(std::make_unique<conbor::Value>(
+    std::vector<std::unique_ptr<varbor::Value>> array;
+    array.push_back(std::make_unique<varbor::Value>(
       std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)}));
-    array.push_back(std::make_unique<conbor::Value>(std::u8string_view(u8"1337")));
+    array.push_back(std::make_unique<varbor::Value>(std::u8string_view(u8"1337")));
     EXPECT_EQ(
-      conbor::Value(std::move(array)).encoded(),
+      varbor::Value(std::move(array)).encoded(),
 
       (std::vector<std::byte>{
         // Header
@@ -918,13 +918,13 @@ TEST(Encoding, Array) {
 }
 
 TEST(Encoding, Map) {
-    std::map<std::unique_ptr<conbor::Value>, std::unique_ptr<conbor::Value>> map;
+    std::map<std::unique_ptr<varbor::Value>, std::unique_ptr<varbor::Value>> map;
     map.insert(std::make_pair(
-      std::make_unique<conbor::Value>(
+      std::make_unique<varbor::Value>(
         std::vector<std::byte>{std::byte(1), std::byte(3), std::byte(3), std::byte(7)}),
-      std::make_unique<conbor::Value>(std::u8string_view(u8"1337"))));
+      std::make_unique<varbor::Value>(std::u8string_view(u8"1337"))));
     EXPECT_EQ(
-      conbor::Value(std::move(map)).encoded(),
+      varbor::Value(std::move(map)).encoded(),
 
       (std::vector<std::byte>{
         // Header
@@ -945,25 +945,25 @@ TEST(Encoding, Map) {
 }
 
 TEST(Decoding, PositiveInteger) {
-    EXPECT_EQ(conbor::Value(5), conbor::Value::decoded(std::vector<std::byte>{std::byte(5)}))
+    EXPECT_EQ(varbor::Value(5), varbor::Value::decoded(std::vector<std::byte>{std::byte(5)}))
       << "tiny positive int";
     EXPECT_EQ(
-      conbor::Value(24),
-      (conbor::Value::decoded(std::vector<std::byte>{std::byte(24), std::byte(24)})))
+      varbor::Value(24),
+      (varbor::Value::decoded(std::vector<std::byte>{std::byte(24), std::byte(24)})))
       << "1 byte positive int";
     EXPECT_EQ(
-      conbor::Value(256),
-      (conbor::Value::decoded(std::vector<std::byte>{std::byte(25), std::byte(1), std::byte(0)})))
+      varbor::Value(256),
+      (varbor::Value::decoded(std::vector<std::byte>{std::byte(25), std::byte(1), std::byte(0)})))
       << "2 byte positive int";
     EXPECT_EQ(
-      conbor::Value(65536),
-      (conbor::Value::decoded(
+      varbor::Value(65536),
+      (varbor::Value::decoded(
         std::vector<
           std::byte>{std::byte(26), std::byte(0), std::byte(1), std::byte(0), std::byte(0)})))
       << "4 byte positive int";
     EXPECT_EQ(
-      conbor::Value(4294967296),
-      (conbor::Value::decoded(std::vector<std::byte>{
+      varbor::Value(4294967296),
+      (varbor::Value::decoded(std::vector<std::byte>{
         std::byte(27),
         std::byte(0),
         std::byte(0),
@@ -978,22 +978,22 @@ TEST(Decoding, PositiveInteger) {
 
 TEST(Decoding, NegativeInteger) {
     EXPECT_EQ(
-      conbor::Value(-6),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)}))
+      varbor::Value(-6),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(1 << 5) | std::byte(5)}))
       << "tiny negative int";
     EXPECT_EQ(
-      conbor::Value(-25),
-      (conbor::Value::decoded(
+      varbor::Value(-25),
+      (varbor::Value::decoded(
         std::vector<std::byte>{std::byte(1 << 5) | std::byte(24), std::byte(24)})))
       << "1 byte negative int";
     EXPECT_EQ(
-      conbor::Value(-257),
-      (conbor::Value::decoded(
+      varbor::Value(-257),
+      (varbor::Value::decoded(
         std::vector<std::byte>{std::byte(1 << 5) | std::byte(25), std::byte(1), std::byte(0)})))
       << "2 byte negative int";
     EXPECT_EQ(
-      conbor::Value(-65537),
-      (conbor::Value::decoded(std::vector<std::byte>{
+      varbor::Value(-65537),
+      (varbor::Value::decoded(std::vector<std::byte>{
         std::byte(1 << 5) | std::byte(26),
         std::byte(0),
         std::byte(1),
@@ -1001,8 +1001,8 @@ TEST(Decoding, NegativeInteger) {
         std::byte(0)})))
       << "4 byte negative int";
     EXPECT_EQ(
-      conbor::Value(-4294967297),
-      (conbor::Value::decoded(std::vector<std::byte>{
+      varbor::Value(-4294967297),
+      (varbor::Value::decoded(std::vector<std::byte>{
         std::byte(1 << 5) | std::byte(27),
         std::byte(0),
         std::byte(0),
@@ -1017,46 +1017,46 @@ TEST(Decoding, NegativeInteger) {
 
 TEST(Decoding, Tagged) {
     EXPECT_EQ(
-      conbor::Value(conbor::Tagged(55799, true)),
-      (conbor::Value::decoded(std::vector<std::byte>{
+      varbor::Value(varbor::Tagged(55799, true)),
+      (varbor::Value::decoded(std::vector<std::byte>{
         std::byte(0xd9),
         std::byte(0xd9),
         std::byte(0xf7),
         std::byte(7 << 5) | std::byte(21)})))
-      << "conbor tagged true";
+      << "varbor tagged true";
 }
 
 TEST(Decoding, Specials) {
     EXPECT_EQ(
-      conbor::Value(false).encoded(),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}).encoded())
+      varbor::Value(false).encoded(),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}).encoded())
       << "boolean false";
     EXPECT_EQ(
-      conbor::Value(false),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}))
+      varbor::Value(false),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}))
       << "boolean false";
     EXPECT_EQ(
-      conbor::Value(true),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)}))
+      varbor::Value(true),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)}))
       << "boolean true";
     EXPECT_EQ(
-      conbor::Value(conbor::Null{}),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
+      varbor::Value(varbor::Null{}),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
       << "null";
     EXPECT_EQ(
-      conbor::Value(nullptr),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
+      varbor::Value(nullptr),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
       << "nullptr null";
     EXPECT_EQ(
-      conbor::Value(conbor::Undefined{}),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)}))
+      varbor::Value(varbor::Undefined{}),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)}))
       << "undefined";
     EXPECT_EQ(
-      conbor::Value(),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)}))
+      varbor::Value(),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)}))
       << "default undefined";
     EXPECT_EQ(
-      conbor::Value(conbor::Break{}),
-      conbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(31)}))
+      varbor::Value(varbor::Break{}),
+      varbor::Value::decoded(std::vector<std::byte>{std::byte(7 << 5) | std::byte(31)}))
       << "break";
 }*/

@@ -7,81 +7,76 @@
 #include <limits>
 
 TEST(Encoding, Specials) {
-    EXPECT_EQ(
-            varbor::to_cbor(false),
+    EXPECT_EQ(varbor::Value(varbor::Boolean(false)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(20)}))
       << "boolean false";
-    EXPECT_EQ(
-            varbor::to_cbor(true),
+    EXPECT_EQ(varbor::Value(varbor::Boolean(true)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(21)}))
       << "boolean true";
-    EXPECT_EQ(
-            varbor::to_cbor(nullptr),
+    EXPECT_EQ(varbor::Value(varbor::Null{}).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)}))
       << "null";
-    EXPECT_EQ(
-            varbor::to_cbor(std::optional<int>{}),
-      std::vector<std::byte>{std::byte(7 << 5) | std::byte(22)})
-      << "optional null";
-
-    EXPECT_EQ(
-            varbor::to_cbor(std::optional<int>{5}),
-      (std::vector<std::byte>{std::byte(5)}))
-      << "optional set";
+    EXPECT_EQ(varbor::Value(varbor::Undefined{}).encode(),
+      (std::vector<std::byte>{std::byte(7 << 5) | std::byte(23)}))
+      << "undefined";
+    EXPECT_EQ(varbor::Value(varbor::Break{}).encode(),
+      (std::vector<std::byte>{std::byte(7 << 5) | std::byte(31)}))
+      << "break";
 }
 
 TEST(Encoding, Floats) {
     EXPECT_EQ(
-            varbor::to_cbor(0.15625f),
+            varbor::Value(varbor::Float(0.15625f)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)}))
       << "16 bit float";
     EXPECT_EQ(
-            varbor::to_cbor(0.15625),
+            varbor::Value(varbor::Float(0.15625)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00110001), std::byte(0b00000000)}))
       << "16 bit float from double";
     EXPECT_EQ(
-            varbor::to_cbor(1.0f / 3.0f),
+            varbor::Value(varbor::Float(1.0f / 3.0f)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)}))
       << "32 bit float";
     EXPECT_EQ(
-            varbor::to_cbor(static_cast<double>(1.0f / 3.0f)),
+            varbor::Value(varbor::Float(static_cast<double>(1.0f / 3.0f))).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(26), std::byte(0b00111110), std::byte(0b10101010), std::byte(0b10101010), std::byte(0b10101011)}))
       << "32 bit float from double";
     EXPECT_EQ(
-            varbor::to_cbor(1.0 / 3.0),
+            varbor::Value(varbor::Float(1.0 / 3.0)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(27), std::byte(0b00111111), std::byte(0b11010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101), std::byte(0b01010101)}))
       << "64 bit float";
 
     EXPECT_EQ(
-            varbor::to_cbor(0.0),
+            varbor::Value(varbor::Float(0.0)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b00000000), std::byte(0b00000000)}))
       << "16 bit zero";
 
     EXPECT_EQ(
-            varbor::to_cbor(-0.0),
+            varbor::Value(varbor::Float(-0.0)).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b10000000), std::byte(0b00000000)}))
       << "16 bit negative zero";
 
     EXPECT_EQ(
-            varbor::to_cbor(std::numeric_limits<double>::infinity()),
+            varbor::Value(varbor::Float(std::numeric_limits<double>::infinity())).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000000)}))
       << "16 bit inifinity";
 
     EXPECT_EQ(
-            varbor::to_cbor(-std::numeric_limits<double>::infinity()),
+            varbor::Value(varbor::Float(-std::numeric_limits<double>::infinity())).encode(),
       (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b11111100), std::byte(0b00000000)}))
       << "16 bit negative inifinity";
 
     EXPECT_EQ(
-            varbor::to_cbor(std::numeric_limits<double>::quiet_NaN()),
-      (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000001)}))
+            varbor::Value(varbor::Float(std::numeric_limits<double>::quiet_NaN())).encode(),
+      (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111110), std::byte(0b00000000)}))
       << "16 bit quiet nan";
 
     EXPECT_EQ(
-            varbor::to_cbor(std::numeric_limits<double>::signaling_NaN()),
-      (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111100), std::byte(0b00000001)}))
+            varbor::Value(varbor::Float(std::numeric_limits<double>::signaling_NaN())).encode(),
+      (std::vector<std::byte>{std::byte(7 << 5) | std::byte(25), std::byte(0b01111110), std::byte(0b00000000)}))
       << "16 bit signaling nan";
 }
+/*
 
 TEST(Encoding, PositiveInteger) {
     EXPECT_EQ(varbor::to_cbor(5), std::vector<std::byte>{std::byte(5)})
@@ -756,7 +751,7 @@ TEST(Decoding, CustomTypes) {
       }))) << "Bidirectional decoding of internal and external types to be sure ADL does everything it should";
 }
 
-/*TEST(BuildValue, Equality) {
+TEST(BuildValue, Equality) {
     EXPECT_EQ(
       varbor::Value(std::u8string_view(u8"Hello")),
       varbor::Value(std::u8string_view(u8"Hello")));

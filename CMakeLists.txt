@@ -21,7 +21,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 install(FILES
     varbor.hxx
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/varbor"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     )
 
 install(TARGETS varbor EXPORT varborTargets

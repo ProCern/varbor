@@ -460,8 +460,10 @@ TEST(Encoding, SemanticTag) {
       varbor::Value(std::move(tag)).encode(),
 
       (std::vector<std::byte>{
-       // Simple CBOR data follows prefix
-        std::byte(0xd9), std::byte(0xd9), std::byte(0xf7),
+        // Simple CBOR data follows prefix
+        std::byte(0xd9),
+        std::byte(0xd9),
+        std::byte(0xf7),
 
         // Array Header
         std::byte(4 << 5) | std::byte(1),
@@ -514,8 +516,10 @@ TEST(Decoding, SemanticTag) {
       varbor::Value(std::move(tag)),
 
       varbor::Value::decode(std::vector<std::byte>{
-       // Simple CBOR data follows prefix
-        std::byte(0xd9), std::byte(0xd9), std::byte(0xf7),
+        // Simple CBOR data follows prefix
+        std::byte(0xd9),
+        std::byte(0xd9),
+        std::byte(0xf7),
 
         // Array Header
         std::byte(4 << 5) | std::byte(1),

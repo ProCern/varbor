@@ -384,41 +384,44 @@ constexpr std::optional<std::array<std::byte, 2>> lossless_float16(const float v
 
 class Value;
 
-    class ValuePointer {
-        private:
-            std::unique_ptr<Value> value;
-        public:
-            template <class... Args>
-                constexpr ValuePointer(Args &&...t) : value(std::forward<Args>(t)...) {
-                }
+/** unique_ptr wrapper that forces comparisons to happen on the values.
+ */
+class ValuePointer {
+  private:
+    std::unique_ptr<Value> value;
 
-            constexpr operator const std::unique_ptr<Value>&() const noexcept {
-                return value;
-            }
+  public:
+    template <class... Args>
+    constexpr ValuePointer(Args &&...t) : value(std::forward<Args>(t)...) {
+    }
 
-            constexpr operator std::unique_ptr<Value>&() noexcept {
-                return value;
-            }
+    constexpr operator const std::unique_ptr<Value> &() const noexcept {
+        return value;
+    }
 
-            inline const Value &operator*() const noexcept {
-                return *value;
-            }
+    constexpr operator std::unique_ptr<Value> &() noexcept {
+        return value;
+    }
 
-            inline Value &operator*() noexcept {
-                return *value;
-            }
+    inline const Value &operator*() const noexcept {
+        return *value;
+    }
 
-            inline const Value *operator->() const noexcept {
-                return value.get();
-            }
+    inline Value &operator*() noexcept {
+        return *value;
+    }
 
-            inline Value *operator->() noexcept {
-                return value.get();
-            }
+    inline const Value *operator->() const noexcept {
+        return value.get();
+    }
 
-            inline bool operator==(const ValuePointer &other) const noexcept;
-            inline std::strong_ordering operator<=>(const ValuePointer &other) const noexcept;
-    };
+    inline Value *operator->() noexcept {
+        return value.get();
+    }
+
+    inline bool operator==(const ValuePointer &other) const noexcept;
+    inline std::strong_ordering operator<=>(const ValuePointer &other) const noexcept;
+};
 
 // All the individual types need to be wrapped, because they all need to support
 // an encode function, and all need to be ordered by their encoded
@@ -614,8 +617,7 @@ struct Map {
         }
     }
 
-    constexpr operator const std::map<ValuePointer, ValuePointer> &()
-      const noexcept {
+    constexpr operator const std::map<ValuePointer, ValuePointer> &() const noexcept {
         return value;
     }
 
@@ -858,8 +860,7 @@ class Value {
     Value(std::vector<ValuePointer> value) noexcept : value_(Array(std::move(value))) {
     }
 
-    Value(std::map<ValuePointer, ValuePointer> value) noexcept :
-        value_(Map(std::move(value))) {
+    Value(std::map<ValuePointer, ValuePointer> value) noexcept : value_(Map(std::move(value))) {
     }
 
     Value(const std::uint64_t id, ValuePointer value) noexcept :

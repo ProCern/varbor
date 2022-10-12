@@ -491,7 +491,7 @@ struct Negative {
 struct ByteString {
     std::vector<std::byte> value;
     template <class... Args>
-    constexpr ByteString(Args &&...t) : value(std::forward<Args>(t)...) {
+    inline ByteString(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
     template <typename OutputIt>
@@ -527,7 +527,7 @@ struct ByteString {
 struct Utf8String {
     std::u8string value;
     template <class... Args>
-    constexpr Utf8String(Args &&...t) : value(std::forward<Args>(t)...) {
+    inline Utf8String(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
     template <typename OutputIt>
@@ -566,7 +566,7 @@ struct Array {
     std::vector<ValuePointer> value;
 
     template <class... Args>
-    constexpr Array(Args &&...t) : value(std::forward<Args>(t)...) {
+    inline Array(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
     template <typename OutputIt>
@@ -598,7 +598,7 @@ struct Map {
     std::map<ValuePointer, ValuePointer> value;
 
     template <class... Args>
-    constexpr Map(Args &&...t) : value(std::forward<Args>(t)...) {
+    inline Map(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
     template <typename OutputIt>

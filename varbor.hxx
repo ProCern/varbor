@@ -384,6 +384,42 @@ constexpr std::optional<std::array<std::byte, 2>> lossless_float16(const float v
 
 class Value;
 
+    class ValuePointer {
+        private:
+            std::unique_ptr<Value> value;
+        public:
+            template <class... Args>
+                constexpr ValuePointer(Args &&...t) : value(std::forward<Args>(t)...) {
+                }
+
+            constexpr operator const std::unique_ptr<Value>&() const noexcept {
+                return value;
+            }
+
+            constexpr operator std::unique_ptr<Value>&() noexcept {
+                return value;
+            }
+
+            inline const Value &operator*() const noexcept {
+                return *value;
+            }
+
+            inline Value &operator*() noexcept {
+                return *value;
+            }
+
+            inline const Value *operator->() const noexcept {
+                return value.get();
+            }
+
+            inline Value *operator->() noexcept {
+                return value.get();
+            }
+
+            inline bool operator==(const ValuePointer &other) const noexcept;
+            inline std::strong_ordering operator<=>(const ValuePointer &other) const noexcept;
+    };
+
 // All the individual types need to be wrapped, because they all need to support
 // an encode function, and all need to be ordered by their encoded
 // representation.
@@ -524,7 +560,7 @@ struct Utf8String {
 /** String wrapper with CBOR ordering rules.
  */
 struct Array {
-    std::vector<std::unique_ptr<Value>> value;
+    std::vector<ValuePointer> value;
 
     template <class... Args>
     constexpr Array(Args &&...t) : value(std::forward<Args>(t)...) {
@@ -546,17 +582,17 @@ struct Array {
         }
     }
 
-    constexpr operator const std::vector<std::unique_ptr<Value>> &() const noexcept {
+    constexpr operator const std::vector<ValuePointer> &() const noexcept {
         return value;
     }
 
-    constexpr operator std::vector<std::unique_ptr<Value>> &() noexcept {
+    constexpr operator std::vector<ValuePointer> &() noexcept {
         return value;
     }
 };
 
 struct Map {
-    std::map<std::unique_ptr<Value>, std::unique_ptr<Value>> value;
+    std::map<ValuePointer, ValuePointer> value;
 
     template <class... Args>
     constexpr Map(Args &&...t) : value(std::forward<Args>(t)...) {
@@ -578,19 +614,19 @@ struct Map {
         }
     }
 
-    constexpr operator const std::map<std::unique_ptr<Value>, std::unique_ptr<Value>> &()
+    constexpr operator const std::map<ValuePointer, ValuePointer> &()
       const noexcept {
         return value;
     }
 
-    constexpr operator std::map<std::unique_ptr<Value>, std::unique_ptr<Value>> &() noexcept {
+    constexpr operator std::map<ValuePointer, ValuePointer> &() noexcept {
         return value;
     }
 };
 
 struct SemanticTag {
     std::uint64_t id = -1;
-    std::unique_ptr<Value> value;
+    ValuePointer value;
 
     template <class... Args>
     constexpr SemanticTag(std::uint64_t id, Args &&...t) : id(id), value(std::forward<Args>(t)...) {
@@ -819,14 +855,14 @@ class Value {
     Value(const char8_t *value) noexcept : value_(Utf8String(std::u8string(value))) {
     }
 
-    Value(std::vector<std::unique_ptr<Value>> value) noexcept : value_(Array(std::move(value))) {
+    Value(std::vector<ValuePointer> value) noexcept : value_(Array(std::move(value))) {
     }
 
-    Value(std::map<std::unique_ptr<Value>, std::unique_ptr<Value>> value) noexcept :
+    Value(std::map<ValuePointer, ValuePointer> value) noexcept :
         value_(Map(std::move(value))) {
     }
 
-    Value(const std::uint64_t id, std::unique_ptr<Value> value) noexcept :
+    Value(const std::uint64_t id, ValuePointer value) noexcept :
         value_(SemanticTag(id, std::move(value))) {
     }
 
@@ -948,7 +984,7 @@ class Value {
             return {begin, Value(Utf8String(std::move(string)))};
         }
         case MajorType::Array: {
-            std::vector<std::unique_ptr<Value>> array;
+            std::vector<ValuePointer> array;
             const auto count = header.get_count();
             if (count) {
                 array.reserve(*count);
@@ -968,7 +1004,7 @@ class Value {
             return {begin, Value(Array(std::move(array)))};
         }
         case MajorType::Map: {
-            std::map<std::unique_ptr<Value>, std::unique_ptr<Value>> map;
+            std::map<ValuePointer, ValuePointer> map;
             const auto count = header.get_count();
             if (count) {
                 Value key(Undefined{});
@@ -1053,8 +1089,15 @@ class Value {
     }
 
     inline bool operator==(const Value &other) const noexcept = default;
-    constexpr auto operator<=>(const Value &other) const noexcept;
+    constexpr auto operator<=>(const Value &other) const noexcept = default;
 };
+
+inline bool ValuePointer::operator==(const ValuePointer &other) const noexcept {
+    return *value == *other.value;
+}
+inline std::strong_ordering ValuePointer::operator<=>(const ValuePointer &other) const noexcept {
+    return *value <=> *other.value;
+}
 
 template <typename OutputIt>
 constexpr OutputIt Array::encode(OutputIt output) const {

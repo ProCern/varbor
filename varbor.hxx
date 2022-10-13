@@ -177,18 +177,18 @@ using Count = std::variant<std::uint8_t, std::uint8_t, std::uint16_t, std::uint3
 struct Header {
     MajorType type;
     Count count;
-    constexpr Header() noexcept = default;
+    Header() noexcept = default;
     // Build explicitly
-    constexpr Header(const MajorType type, const Count count) noexcept : type(type), count(count) {
+    inline Header(const MajorType type, const Count count) noexcept : type(type), count(count) {
     }
 
     // Build with indefinite count
-    constexpr Header(const MajorType type) noexcept :
+    inline Header(const MajorType type) noexcept :
         Header(type, Count(std::in_place_index<0>, 31)) {
     }
 
     // Build with straightforward count
-    constexpr Header(const MajorType type, const std::uint64_t simple_count) noexcept : type(type) {
+    inline Header(const MajorType type, const std::uint64_t simple_count) noexcept : type(type) {
         if (simple_count < 24) {
             count = Count{std::in_place_index<0>, simple_count};
         } else if (simple_count < 0x100ull) {
@@ -202,7 +202,7 @@ struct Header {
         }
     }
 
-    constexpr auto operator<=>(const Header &other) const noexcept = default;
+    auto operator<=>(const Header &other) const noexcept = default;
 
     /** Extract a full count from the variant,  throwing an error if the count
      * wouldn't be a legal count or would be ambiguous (like any value in the tiny
@@ -210,7 +210,7 @@ struct Header {
      * Returns an empty optional if it was a tiny count of 31, indicating
      * indeterminant.
      */
-    constexpr std::optional<std::uint64_t> get_count() const {
+    inline std::optional<std::uint64_t> get_count() const {
         if (count.index() == 0) {
             const auto tinycount = std::get<0>(count);
             if (tinycount < 24) {
@@ -326,7 +326,7 @@ OutputIt write_header(OutputIt output, const Header header) {
 
 /** Convert from float to float16 only if it can be done losslessly.
  */
-constexpr std::optional<std::array<std::byte, 2>> lossless_float16(const float value) {
+inline std::optional<std::array<std::byte, 2>> lossless_float16(const float value) {
     switch (std::fpclassify(value)) {
     case FP_ZERO: {
         std::array<std::byte, 2> output = {std::byte(0), std::byte(0)};
@@ -392,14 +392,14 @@ class ValuePointer {
 
   public:
     template <class... Args>
-    constexpr ValuePointer(Args &&...t) : value(std::forward<Args>(t)...) {
+    inline ValuePointer(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
-    constexpr operator const std::unique_ptr<Value> &() const noexcept {
+    inline operator const std::unique_ptr<Value> &() const noexcept {
         return value;
     }
 
-    constexpr operator std::unique_ptr<Value> &() noexcept {
+    inline operator std::unique_ptr<Value> &() noexcept {
         return value;
     }
 
@@ -431,28 +431,28 @@ struct Positive {
     // The raw count value.
     std::uint64_t value = 0;
 
-    constexpr Positive() noexcept = default;
+    Positive() noexcept = default;
 
-    constexpr Positive(const std::uint64_t value) noexcept : value(value) {
+    inline Positive(const std::uint64_t value) noexcept : value(value) {
     }
 
-    constexpr operator std::int64_t() const noexcept {
+    inline operator std::int64_t() const noexcept {
         return static_cast<int64_t>(value);
     }
 
-    constexpr operator std::uint64_t() const noexcept {
+    inline operator std::uint64_t() const noexcept {
         return value;
     }
 
-    constexpr bool is_valid_int64() const noexcept {
+    inline bool is_valid_int64() const noexcept {
         return value < 9223372036854775808ul;
     }
 
-    constexpr bool operator==(const Positive &other) const noexcept = default;
-    constexpr auto operator<=>(const Positive &other) const noexcept = default;
+    bool operator==(const Positive &other) const noexcept = default;
+    auto operator<=>(const Positive &other) const noexcept = default;
 
     template <typename OutputIt>
-    constexpr OutputIt encode(const OutputIt iterator) const {
+    OutputIt encode(const OutputIt iterator) const {
         return write_header(iterator, Header(MajorType::PositiveInteger, value));
     }
 };
@@ -464,24 +464,24 @@ struct Negative {
     // The raw count value.
     std::uint64_t count = 0;
 
-    constexpr Negative() noexcept = default;
+    Negative() noexcept = default;
 
-    constexpr Negative(std::uint64_t count) : count(count) {
+    inline Negative(std::uint64_t count) : count(count) {
     }
 
-    constexpr operator std::int64_t() const noexcept {
+    inline operator std::int64_t() const noexcept {
         return -1 - static_cast<int64_t>(count);
     }
 
-    constexpr bool is_valid_int64() const noexcept {
+    inline bool is_valid_int64() const noexcept {
         return count < 9223372036854775807ul;
     }
 
-    constexpr bool operator==(const Negative &other) const noexcept = default;
-    constexpr auto operator<=>(const Negative &other) const noexcept = default;
+    bool operator==(const Negative &other) const noexcept = default;
+    auto operator<=>(const Negative &other) const noexcept = default;
 
     template <typename OutputIt>
-    constexpr OutputIt encode(const OutputIt iterator) const {
+    OutputIt encode(const OutputIt iterator) const {
         return write_header(iterator, Header(MajorType::NegativeInteger, count));
     }
 };
@@ -495,14 +495,14 @@ struct ByteString {
     }
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt output) const {
+    OutputIt encode(OutputIt output) const {
         const auto iterator = write_header(output, Header(MajorType::ByteString, value.size()));
         return std::copy(value.begin(), value.end(), iterator);
     }
 
-    constexpr bool operator==(const ByteString &other) const noexcept = default;
+    bool operator==(const ByteString &other) const noexcept = default;
 
-    constexpr std::strong_ordering operator<=>(const ByteString &other) const noexcept {
+    inline std::strong_ordering operator<=>(const ByteString &other) const noexcept {
         const auto size_compare = value.size() <=> other.value.size();
         if (std::is_lt(size_compare)) {
             return std::strong_ordering::less;
@@ -513,11 +513,11 @@ struct ByteString {
         }
     }
 
-    constexpr operator const std::vector<std::byte> &() const noexcept {
+    inline operator const std::vector<std::byte> &() const noexcept {
         return value;
     }
 
-    constexpr operator std::vector<std::byte> &() noexcept {
+    inline operator std::vector<std::byte> &() noexcept {
         return value;
     }
 };
@@ -526,21 +526,22 @@ struct ByteString {
  */
 struct Utf8String {
     std::u8string value;
+
     template <class... Args>
-    inline Utf8String(Args &&...t) : value(std::forward<Args>(t)...) {
+    Utf8String(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt output) const {
+    OutputIt encode(OutputIt output) const {
         const auto iterator = write_header(output, Header(MajorType::Utf8String, value.size()));
         return std::transform(value.begin(), value.end(), iterator, [](const auto c) {
             return std::byte(c);
         });
     }
 
-    constexpr bool operator==(const Utf8String &other) const noexcept = default;
+    bool operator==(const Utf8String &other) const noexcept = default;
 
-    constexpr std::strong_ordering operator<=>(const Utf8String &other) const noexcept {
+    inline std::strong_ordering operator<=>(const Utf8String &other) const noexcept {
         const auto size_compare = value.size() <=> other.value.size();
         if (std::is_lt(size_compare)) {
             return std::strong_ordering::less;
@@ -551,11 +552,11 @@ struct Utf8String {
         }
     }
 
-    constexpr operator const std::u8string &() const noexcept {
+    inline operator const std::u8string &() const noexcept {
         return value;
     }
 
-    constexpr operator std::u8string &() noexcept {
+    inline operator std::u8string &() noexcept {
         return value;
     }
 };
@@ -570,11 +571,11 @@ struct Array {
     }
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt output) const;
+    OutputIt encode(OutputIt output) const;
 
-    constexpr bool operator==(const Array &other) const noexcept = default;
+    bool operator==(const Array &other) const noexcept = default;
 
-    constexpr std::strong_ordering operator<=>(const Array &other) const noexcept {
+    inline std::strong_ordering operator<=>(const Array &other) const noexcept {
         const auto size_compare = value.size() <=> other.value.size();
         if (std::is_lt(size_compare)) {
             return std::strong_ordering::less;
@@ -585,11 +586,11 @@ struct Array {
         }
     }
 
-    constexpr operator const std::vector<ValuePointer> &() const noexcept {
+    inline operator const std::vector<ValuePointer> &() const noexcept {
         return value;
     }
 
-    constexpr operator std::vector<ValuePointer> &() noexcept {
+    inline operator std::vector<ValuePointer> &() noexcept {
         return value;
     }
 };
@@ -617,11 +618,11 @@ struct Map {
         }
     }
 
-    constexpr operator const std::map<ValuePointer, ValuePointer> &() const noexcept {
+    inline operator const std::map<ValuePointer, ValuePointer> &() const noexcept {
         return value;
     }
 
-    constexpr operator std::map<ValuePointer, ValuePointer> &() noexcept {
+    inline operator std::map<ValuePointer, ValuePointer> &() noexcept {
         return value;
     }
 };
@@ -631,33 +632,33 @@ struct SemanticTag {
     ValuePointer value;
 
     template <class... Args>
-    constexpr SemanticTag(std::uint64_t id, Args &&...t) : id(id), value(std::forward<Args>(t)...) {
+    SemanticTag(std::uint64_t id, Args &&...t) : id(id), value(std::forward<Args>(t)...) {
     }
 
     inline bool operator==(const SemanticTag &other) const noexcept = default;
     inline auto operator<=>(const SemanticTag &other) const noexcept = default;
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt output) const;
+    OutputIt encode(OutputIt output) const;
 };
 
 struct Boolean {
     bool value = false;
 
-    constexpr Boolean() noexcept = default;
-    constexpr Boolean(const bool value) noexcept : value(value) {
+    Boolean() noexcept = default;
+    inline Boolean(const bool value) noexcept : value(value) {
     }
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt iterator) const {
+    OutputIt encode(OutputIt iterator) const {
         return write_header(iterator, Header{MajorType::SpecialFloat, value ? 21u : 20u});
     }
 
-    constexpr bool operator==(const Boolean &other) const noexcept {
+    inline bool operator==(const Boolean &other) const noexcept {
         return value == other.value || (std::isnan(value) && std::isnan(other.value));
     }
 
-    constexpr std::strong_ordering operator<=>(const Boolean &other) const noexcept {
+    inline std::strong_ordering operator<=>(const Boolean &other) const noexcept {
         std::array<std::byte, 5> first;
         std::array<std::byte, 5> second;
         std::ranges::fill(first, std::byte(0));
@@ -667,37 +668,37 @@ struct Boolean {
         return first <=> second;
     }
 
-    constexpr operator bool() const noexcept {
+    inline operator bool() const noexcept {
         return value;
     }
 };
 
 struct Null {
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt iterator) const {
+    OutputIt encode(OutputIt iterator) const {
         return write_header(iterator, Header{MajorType::SpecialFloat, 22});
     }
 
-    constexpr bool operator==(const Null &) const noexcept {
+    inline bool operator==(const Null &) const noexcept {
         return true;
     }
 
-    constexpr std::strong_ordering operator<=>(const Null &) const noexcept {
+    inline std::strong_ordering operator<=>(const Null &) const noexcept {
         return std::strong_ordering::equal;
     }
 };
 
 struct Undefined {
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt iterator) const {
+    OutputIt encode(OutputIt iterator) const {
         return write_header(iterator, Header{MajorType::SpecialFloat, 23});
     }
 
-    constexpr bool operator==(const Undefined &) const noexcept {
+    inline bool operator==(const Undefined &) const noexcept {
         return true;
     }
 
-    constexpr std::strong_ordering operator<=>(const Undefined &) const noexcept {
+    inline std::strong_ordering operator<=>(const Undefined &) const noexcept {
         return std::strong_ordering::equal;
     }
 };
@@ -708,13 +709,13 @@ struct Undefined {
 struct Float {
     double value = 0.0;
 
-    constexpr Float() noexcept = default;
+    Float() noexcept = default;
 
-    constexpr Float(const double value) noexcept : value(value) {
+    inline Float(const double value) noexcept : value(value) {
     }
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt iterator) const {
+    OutputIt encode(OutputIt iterator) const {
         static_assert(sizeof(float) == 4, "floats must be 4 bytes");
         static_assert(sizeof(double) == 8, "doubles must be 8 bytes");
         static_assert(
@@ -747,11 +748,11 @@ struct Float {
         }
     }
 
-    constexpr bool operator==(const Float &other) const noexcept {
+    inline bool operator==(const Float &other) const noexcept {
         return value == other.value || (std::isnan(value) && std::isnan(other.value));
     }
 
-    constexpr std::strong_ordering operator<=>(const Float &other) const noexcept {
+    inline std::strong_ordering operator<=>(const Float &other) const noexcept {
         std::array<std::byte, 5> first;
         std::array<std::byte, 5> second;
         std::ranges::fill(first, std::byte(0));
@@ -761,7 +762,7 @@ struct Float {
         return first <=> second;
     }
 
-    constexpr operator double() const noexcept {
+    inline operator double() const noexcept {
         return value;
     }
 };
@@ -770,15 +771,15 @@ struct Float {
  */
 struct Break {
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt iterator) const {
+    OutputIt encode(OutputIt iterator) const {
         return write_header(iterator, Header{MajorType::SpecialFloat});
     }
 
-    constexpr bool operator==(const Break &) const noexcept {
+    inline bool operator==(const Break &) const noexcept {
         return true;
     }
 
-    constexpr std::strong_ordering operator<=>(const Break &) const noexcept {
+    inline std::strong_ordering operator<=>(const Break &) const noexcept {
         return std::strong_ordering::equal;
     }
 };
@@ -888,7 +889,7 @@ class Value {
     }
 
     template <typename OutputIt>
-    constexpr OutputIt encode(OutputIt output) const {
+    OutputIt encode(OutputIt output) const {
         return std::visit(
           [output](const auto &value) {
               return value.encode(output);
@@ -896,7 +897,7 @@ class Value {
           value_);
     }
 
-    constexpr std::vector<std::byte> encode() const {
+    inline std::vector<std::byte> encode() const {
         std::vector<std::byte> output;
         std::visit(
           [&output](const auto &value) {
@@ -1089,8 +1090,8 @@ class Value {
         return decode(std::span<const std::byte>{bytes.data(), bytes.size()});
     }
 
-    inline bool operator==(const Value &other) const noexcept = default;
-    constexpr auto operator<=>(const Value &other) const noexcept = default;
+    bool operator==(const Value &other) const noexcept = default;
+    auto operator<=>(const Value &other) const noexcept = default;
 };
 
 inline bool ValuePointer::operator==(const ValuePointer &other) const noexcept {
@@ -1101,7 +1102,7 @@ inline std::strong_ordering ValuePointer::operator<=>(const ValuePointer &other)
 }
 
 template <typename OutputIt>
-constexpr OutputIt Array::encode(OutputIt output) const {
+OutputIt Array::encode(OutputIt output) const {
     output = write_header(output, Header(MajorType::Array, value.size()));
     for (const auto &item : value) {
         output = item->encode(output);
@@ -1119,7 +1120,7 @@ inline OutputIt Map::encode(OutputIt output) const {
     return output;
 }
 template <typename OutputIt>
-constexpr OutputIt SemanticTag::encode(OutputIt output) const {
+OutputIt SemanticTag::encode(OutputIt output) const {
     output = write_header(output, Header(MajorType::SemanticTag, id));
     return value->encode(output);
 }

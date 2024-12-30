@@ -11,6 +11,7 @@
 #include <compare>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -19,6 +20,7 @@
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -183,8 +185,7 @@ struct Header {
     }
 
     // Build with indefinite count
-    inline Header(const MajorType type) noexcept :
-        Header(type, Count(std::in_place_index<0>, 31)) {
+    inline Header(const MajorType type) noexcept : Header(type, Count(std::in_place_index<0>, 31)) {
     }
 
     // Build with straightforward count
@@ -489,43 +490,73 @@ struct Negative {
 /** String wrapper with CBOR ordering rules.
  */
 struct ByteString {
-    std::vector<std::byte> value;
+    std::variant<std::vector<std::byte>, std::span<const std::byte>> value;
     template <class... Args>
     inline ByteString(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 
     template <typename OutputIt>
     OutputIt encode(OutputIt output) const {
-        const auto iterator = write_header(output, Header(MajorType::ByteString, value.size()));
-        return std::copy(value.begin(), value.end(), iterator);
+        const auto iterator = write_header(
+          output,
+          Header(
+            MajorType::ByteString,
+            std::visit(
+              [](auto &&value) {
+                  return value.size();
+              },
+              value)));
+        return std::visit(
+          [iterator = std::move(iterator)](auto &&value) {
+              return std::ranges::copy(value, iterator).out;
+          },
+          value);
     }
 
-    bool operator==(const ByteString &other) const noexcept = default;
+    bool operator==(const ByteString &other) const noexcept {
+        return std::ranges::equal(
+          static_cast<std::span<const std::byte>>(*this),
+          static_cast<std::span<const std::byte>>(other));
+    }
 
     inline std::strong_ordering operator<=>(const ByteString &other) const noexcept {
-        const auto size_compare = value.size() <=> other.value.size();
-        if (std::is_lt(size_compare)) {
-            return std::strong_ordering::less;
-        } else if (std::is_gt(size_compare)) {
-            return std::strong_ordering::greater;
+        const auto size_compare = //
+          std::visit(
+            [](auto &&value) {
+                return value.size();
+            },
+            value) <=>
+          std::visit(
+            [](auto &&value) {
+                return value.size();
+            },
+            other.value);
+        if (size_compare == std::strong_ordering::equal) {
+            const auto lhs = static_cast<std::span<const std::byte>>(*this);
+            const auto rhs = static_cast<std::span<const std::byte>>(other);
+            return std::lexicographical_compare_three_way(
+              std::begin(lhs),
+              std::end(lhs),
+              std::begin(rhs),
+              std::end(rhs));
         } else {
-            return value <=> other.value;
+            return size_compare;
         }
     }
 
-    inline operator const std::vector<std::byte> &() const noexcept {
-        return value;
-    }
-
-    inline operator std::vector<std::byte> &() noexcept {
-        return value;
+    inline operator std::span<const std::byte>() const noexcept {
+        return std::visit(
+          [](auto &&value) {
+              return std::span(value);
+          },
+          value);
     }
 };
 
 /** String wrapper with CBOR ordering rules.
  */
 struct Utf8String {
-    std::u8string value;
+    std::variant<std::u8string, std::u8string_view> value;
 
     template <class... Args>
     Utf8String(Args &&...t) : value(std::forward<Args>(t)...) {
@@ -533,31 +564,60 @@ struct Utf8String {
 
     template <typename OutputIt>
     OutputIt encode(OutputIt output) const {
-        const auto iterator = write_header(output, Header(MajorType::Utf8String, value.size()));
-        return std::transform(value.begin(), value.end(), iterator, [](const auto c) {
-            return std::byte(c);
-        });
+        const auto iterator = write_header(
+          output,
+          Header(
+            MajorType::Utf8String,
+            std::visit(
+              [](auto &&value) {
+                  return value.size();
+              },
+              value)));
+        // return std::ranges::transform(value.begin(), value.end(), iterator, [](const auto c) {
+        //     return std::byte(c);
+        // });
+        return std::visit(
+          [iterator = std::move(iterator)](auto &&value) {
+              return std::ranges::transform(
+                       value,
+                       iterator,
+                       [](const auto c) {
+                           return std::byte(c);
+                       })
+                .out;
+          },
+          value);
     }
 
-    bool operator==(const Utf8String &other) const noexcept = default;
+    bool operator==(const Utf8String &other) const noexcept {
+        return static_cast<std::u8string_view>(*this) == static_cast<std::u8string_view>(other);
+    }
 
     inline std::strong_ordering operator<=>(const Utf8String &other) const noexcept {
-        const auto size_compare = value.size() <=> other.value.size();
-        if (std::is_lt(size_compare)) {
-            return std::strong_ordering::less;
-        } else if (std::is_gt(size_compare)) {
-            return std::strong_ordering::greater;
-        } else {
+        const auto size_compare = //
+          std::visit(
+            [](auto &&value) {
+                return value.size();
+            },
+            value) <=>
+          std::visit(
+            [](auto &&value) {
+                return value.size();
+            },
+            other.value);
+        if (size_compare == std::strong_ordering::equal) {
             return value <=> other.value;
+        } else {
+            return size_compare;
         }
     }
 
-    inline operator const std::u8string &() const noexcept {
-        return value;
-    }
-
-    inline operator std::u8string &() noexcept {
-        return value;
+    inline operator std::u8string_view() const noexcept {
+        return std::visit(
+          [](auto &&value) {
+              return std::u8string_view(value);
+          },
+          value);
     }
 };
 
@@ -941,9 +1001,10 @@ class Value {
                 std::tie(begin, value) = Value::decode(begin, end);
                 for (; value != Value(Break{});
                      std::tie(begin, value) = Value::decode(begin, end)) {
-                    auto substring = std::get<ByteString>(std::move(value).value_).value;
-                    string.reserve(substring.size());
-                    std::copy(substring.begin(), substring.end(), std::back_inserter(string));
+                    const auto substring = std::get<ByteString>(std::move(value).value_);
+                    const std::span<const std::byte> view = substring;
+                    string.reserve(view.size());
+                    std::copy(view.begin(), view.end(), std::back_inserter(string));
                 }
             }
             return {begin, Value(ByteString(std::move(string)))};
@@ -978,9 +1039,10 @@ class Value {
                 std::tie(begin, value) = Value::decode(begin, end);
                 for (; value != Value(Break{});
                      std::tie(begin, value) = Value::decode(begin, end)) {
-                    auto substring = std::get<Utf8String>(std::move(value).value_).value;
-                    string.reserve(substring.size());
-                    std::copy(substring.begin(), substring.end(), std::back_inserter(string));
+                    const auto substring = std::get<Utf8String>(std::move(value).value_);
+                    const std::u8string_view view = substring;
+                    string.reserve(view.size());
+                    std::copy(view.begin(), view.end(), std::back_inserter(string));
                 }
             }
             return {begin, Value(Utf8String(std::move(string)))};

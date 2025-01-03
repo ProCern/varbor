@@ -9,6 +9,7 @@
 #include <bitset>
 #include <cmath>
 #include <compare>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -393,6 +394,7 @@ class ValuePointer {
 
   public:
     template <class... Args>
+        requires std::constructible_from<std::unique_ptr<Value>, Args...>
     inline ValuePointer(Args &&...t) : value(std::forward<Args>(t)...) {
     }
 

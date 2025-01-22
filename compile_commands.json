@@ -1,127 +1,127 @@
 [
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_array.dir/test/decoding_array.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_array.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_array.dir/test/decoding_array.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_array.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_array.cxx",
   "output": "CMakeFiles/decoding_array.dir/test/decoding_array.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_byte_string.dir/test/decoding_byte_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_byte_string.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_byte_string.dir/test/decoding_byte_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_byte_string.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_byte_string.cxx",
   "output": "CMakeFiles/decoding_byte_string.dir/test/decoding_byte_string.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_floats.dir/test/decoding_floats.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_floats.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_floats.dir/test/decoding_floats.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_floats.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_floats.cxx",
   "output": "CMakeFiles/decoding_floats.dir/test/decoding_floats.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_map.dir/test/decoding_map.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_map.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_map.dir/test/decoding_map.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_map.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_map.cxx",
   "output": "CMakeFiles/decoding_map.dir/test/decoding_map.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_map_array_mixed_recursive.dir/test/decoding_map_array_mixed_recursive.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_map_array_mixed_recursive.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_map_array_mixed_recursive.dir/test/decoding_map_array_mixed_recursive.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_map_array_mixed_recursive.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_map_array_mixed_recursive.cxx",
   "output": "CMakeFiles/decoding_map_array_mixed_recursive.dir/test/decoding_map_array_mixed_recursive.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_negative_integer.dir/test/decoding_negative_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_negative_integer.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_negative_integer.dir/test/decoding_negative_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_negative_integer.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_negative_integer.cxx",
   "output": "CMakeFiles/decoding_negative_integer.dir/test/decoding_negative_integer.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_positive_integer.dir/test/decoding_positive_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_positive_integer.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_positive_integer.dir/test/decoding_positive_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_positive_integer.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_positive_integer.cxx",
   "output": "CMakeFiles/decoding_positive_integer.dir/test/decoding_positive_integer.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_semantic_tag.dir/test/decoding_semantic_tag.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_semantic_tag.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_semantic_tag.dir/test/decoding_semantic_tag.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_semantic_tag.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_semantic_tag.cxx",
   "output": "CMakeFiles/decoding_semantic_tag.dir/test/decoding_semantic_tag.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_specials.dir/test/decoding_specials.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_specials.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_specials.dir/test/decoding_specials.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_specials.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_specials.cxx",
   "output": "CMakeFiles/decoding_specials.dir/test/decoding_specials.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/decoding_string.dir/test/decoding_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_string.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/decoding_string.dir/test/decoding_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/decoding_string.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/decoding_string.cxx",
   "output": "CMakeFiles/decoding_string.dir/test/decoding_string.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_array.dir/test/encoding_array.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_array.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_array.dir/test/encoding_array.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_array.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_array.cxx",
   "output": "CMakeFiles/encoding_array.dir/test/encoding_array.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_byte_string.dir/test/encoding_byte_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_byte_string.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_byte_string.dir/test/encoding_byte_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_byte_string.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_byte_string.cxx",
   "output": "CMakeFiles/encoding_byte_string.dir/test/encoding_byte_string.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_floats.dir/test/encoding_floats.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_floats.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_floats.dir/test/encoding_floats.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_floats.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_floats.cxx",
   "output": "CMakeFiles/encoding_floats.dir/test/encoding_floats.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_map.dir/test/encoding_map.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_map.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_map.dir/test/encoding_map.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_map.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_map.cxx",
   "output": "CMakeFiles/encoding_map.dir/test/encoding_map.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_map_array_mixed_recursive.dir/test/encoding_map_array_mixed_recursive.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_map_array_mixed_recursive.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_map_array_mixed_recursive.dir/test/encoding_map_array_mixed_recursive.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_map_array_mixed_recursive.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_map_array_mixed_recursive.cxx",
   "output": "CMakeFiles/encoding_map_array_mixed_recursive.dir/test/encoding_map_array_mixed_recursive.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_negative_integer.dir/test/encoding_negative_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_negative_integer.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_negative_integer.dir/test/encoding_negative_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_negative_integer.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_negative_integer.cxx",
   "output": "CMakeFiles/encoding_negative_integer.dir/test/encoding_negative_integer.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_positive_integer.dir/test/encoding_positive_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_positive_integer.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_positive_integer.dir/test/encoding_positive_integer.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_positive_integer.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_positive_integer.cxx",
   "output": "CMakeFiles/encoding_positive_integer.dir/test/encoding_positive_integer.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_semantic_tag.dir/test/encoding_semantic_tag.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_semantic_tag.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_semantic_tag.dir/test/encoding_semantic_tag.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_semantic_tag.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_semantic_tag.cxx",
   "output": "CMakeFiles/encoding_semantic_tag.dir/test/encoding_semantic_tag.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_specials.dir/test/encoding_specials.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_specials.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_specials.dir/test/encoding_specials.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_specials.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_specials.cxx",
   "output": "CMakeFiles/encoding_specials.dir/test/encoding_specials.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/encoding_string.dir/test/encoding_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_string.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/encoding_string.dir/test/encoding_string.cxx.o -c /home/work/Projects/sard/deps/varbor/test/encoding_string.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/encoding_string.cxx",
   "output": "CMakeFiles/encoding_string.dir/test/encoding_string.cxx.o"
 },
 {
   "directory": "/home/work/Projects/sard/deps/varbor/build",
-  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -std=c++20 -o CMakeFiles/equality_array.dir/test/equality_array.cxx.o -c /home/work/Projects/sard/deps/varbor/test/equality_array.cxx",
+  "command": "/usr/bin/c++  -I/home/work/Projects/sard/deps/varbor/src -g -std=c++20 -fsanitize=address -fsanitize=undefined -fsanitize=leak -o CMakeFiles/equality_array.dir/test/equality_array.cxx.o -c /home/work/Projects/sard/deps/varbor/test/equality_array.cxx",
   "file": "/home/work/Projects/sard/deps/varbor/test/equality_array.cxx",
   "output": "CMakeFiles/equality_array.dir/test/equality_array.cxx.o"
 }

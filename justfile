@@ -8,7 +8,7 @@ format:
 
 test:
 	mkdir -p build
-	cmake -Bbuild -S. -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE
+	cmake -Bbuild -S. -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DCMAKE_BUILD_TYPE=Debug
 	cp build/compile_commands.json .
 	cmake --build build
 	# ctest --build-and-test . build --build-generator 'Unix Makefiles'

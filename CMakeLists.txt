@@ -51,6 +51,12 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
+target_include_directories(varbor
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:include>
+)
+
 install(
     FILES
     "${CMAKE_CURRENT_BINARY_DIR}/varbor-config.cmake"

@@ -26,10 +26,10 @@ install(FILES
     )
 
 install(TARGETS varbor EXPORT varborTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
+    ARCHIVE
+    LIBRARY
+    RUNTIME
+    INCLUDES
 )
 
 install(

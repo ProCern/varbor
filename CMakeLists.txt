@@ -52,7 +52,7 @@ write_basic_package_version_file(
 )
 
 target_include_directories(varbor
-    PUBLIC
+    INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<INSTALL_INTERFACE:include>
 )

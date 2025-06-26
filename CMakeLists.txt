@@ -12,6 +12,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BUILD_TESTS "Build testing suite" OFF)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "AIX")
+    set(AIX TRUE)
+    set(IBMI_PASE FALSE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "OS400")
+# IBM i PASE is also an AIX environment.
+# If you want to check for true AIX, check `if (AIX AND NOT IBMI_PASE)`
+    set(AIX TRUE)
+    set(IBMI_PASE TRUE)
+else()
+    set(AIX FALSE)
+    set(IBMI_PASE FALSE)
+endif()
+
 add_library(
     varbor
     INTERFACE

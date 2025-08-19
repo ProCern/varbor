@@ -18,9 +18,11 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -192,13 +194,13 @@ struct Header {
     // Build with straightforward count
     inline Header(const MajorType type, const std::uint64_t simple_count) noexcept : type(type) {
         if (simple_count < 24) {
-            count = Count{std::in_place_index<0>, simple_count};
+            count = Count{std::in_place_index<0>, static_cast<std::uint8_t>(simple_count)};
         } else if (simple_count < 0x100ull) {
-            count = Count{std::in_place_index<1>, simple_count};
+            count = Count{std::in_place_index<1>, static_cast<std::uint8_t>(simple_count)};
         } else if (simple_count < 0x10000ull) {
-            count = Count{std::in_place_index<2>, simple_count};
+            count = Count{std::in_place_index<2>, static_cast<std::uint16_t>(simple_count)};
         } else if (simple_count < 0x100000000ull) {
-            count = Count{std::in_place_index<3>, simple_count};
+            count = Count{std::in_place_index<3>, static_cast<std::uint32_t>(simple_count)};
         } else {
             count = Count{std::in_place_index<4>, simple_count};
         }
@@ -1136,7 +1138,11 @@ class Value {
                   begin,
                   Value(Float(from_be_bytes<double>(to_be_bytes(std::get<4>(header.count)))))};
             default:
+#ifdef _MSC_VER
+                __assume(0);
+#else
                 __builtin_unreachable();
+#endif
             }
             break;
         }

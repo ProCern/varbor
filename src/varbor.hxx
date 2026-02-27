@@ -30,6 +30,12 @@
 #include <variant>
 #include <vector>
 
+#ifdef _MSC_VER
+#define VARBOR_UNREACHABLE __assume(0)
+#else
+#define VARBOR_UNREACHABLE __builtin_unreachable()
+#endif
+
 namespace varbor {
 /** Default error type.
  */
@@ -1138,11 +1144,7 @@ class Value {
                   begin,
                   Value(Float(from_be_bytes<double>(to_be_bytes(std::get<4>(header.count)))))};
             default:
-#ifdef _MSC_VER
-                __assume(0);
-#else
-                __builtin_unreachable();
-#endif
+                VARBOR_UNREACHABLE;
             }
             break;
         }

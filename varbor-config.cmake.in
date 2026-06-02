@@ -1,7 +1,7 @@
 @PACKAGE_INIT@
 include(CMakeFindDependencyMacro)
 
-set_and_check(varbor_INCLUDE_DIR ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@)
+set_and_check(varbor_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 
 check_required_components(varbor)
 

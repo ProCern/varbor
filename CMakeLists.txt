@@ -55,6 +55,7 @@ configure_package_config_file(
     "varbor-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/varbor-config.cmake"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/varbor"
+    PATH_VARS CMAKE_INSTALL_INCLUDEDIR
 )
 
 write_basic_package_version_file(
